@@ -3,44 +3,43 @@ import re
 import unidecode
 import nltk
 
-nltk.download("punkt")
-from nltk.corpus import stopwords
+# nltk.download("punkt")
+# from nltk.corpus import stopwords
 
-stopwords = stopwords.words("english")
+# stopwords = stopwords.words("english")
 from contraction_map import CONTRACTION_MAP
 
-stoplist = set(stopwords)
+# stoplist = set(stopwords)
 # from nltk.tokenize import word_tokenize
 import re
 import unidecode
 from bs4 import BeautifulSoup
-from nltk import word_tokenize
 
 
-def removing_stopwords(text):
-    """This function will remove stopwords which doesn't add much meaning to a sentence
-       & they can be remove safely without comprimising meaning of the sentence.
+# def removing_stopwords(text):
+#     """This function will remove stopwords which doesn't add much meaning to a sentence
+#        & they can be remove safely without comprimising meaning of the sentence.
 
-    arguments:
-         input_text: "text" of type "String".
+#     arguments:
+#          input_text: "text" of type "String".
 
-    return:
-        value: Text after omitted all stopwords.
+#     return:
+#         value: Text after omitted all stopwords.
 
-    Example:
-    Input : This is Kajal from delhi who came here to study.
-    Output : ["'This", 'Kajal', 'delhi', 'came', 'study', '.', "'"]
+#     Example:
+#     Input : This is Kajal from delhi who came here to study.
+#     Output : ["'This", 'Kajal', 'delhi', 'came', 'study', '.', "'"]
 
-    """
-    # repr() function actually gives the precise information about the string
-    text = repr(text)
-    # Text without stopwords
-    No_StopWords = [
-        word for word in word_tokenize(text) if word.lower() not in stoplist
-    ]
-    # Convert list of tokens_without_stopwords to String type.
-    words_string = " ".join(No_StopWords)
-    return words_string
+#     """
+#     # repr() function actually gives the precise information about the string
+#     text = repr(text)
+#     # Text without stopwords
+#     No_StopWords = [
+#         word for word in word_tokenize(text) if word.lower() not in stoplist
+#     ]
+#     # Convert list of tokens_without_stopwords to String type.
+#     words_string = " ".join(No_StopWords)
+#     return words_string
 
 
 # The code for removing special characters
@@ -67,30 +66,30 @@ def removing_special_characters(text):
 
 
 # The code for lemmatization
-w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
-lemmatizer = nltk.stem.WordNetLemmatizer()
+# w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
+# lemmatizer = nltk.stem.WordNetLemmatizer()
 
 
-def lemmatization(text):
-    """This function converts word to their root words
-       without explicitely cut down as done in stemming.
+# def lemmatization(text):
+#     """This function converts word to their root words
+#        without explicitely cut down as done in stemming.
 
-    arguments:
-         input_text: "text" of type "String".
+#     arguments:
+#          input_text: "text" of type "String".
 
-    return:
-        value: Text having root words only, no tense form, no plural forms
+#     return:
+#         value: Text having root words only, no tense form, no plural forms
 
-    Example:
-    Input : text reduced
-    Output :  text reduce
+#     Example:
+#     Input : text reduced
+#     Output :  text reduce
 
-    """
-    lemma = ""
-    # Converting words to their root forms
-    for w in w_tokenizer.tokenize(text):
-        lemma += lemmatizer.lemmatize(w, "v") + " "
-    return lemma
+#     """
+#     lemma = ""
+#     # Converting words to their root forms
+#     for w in w_tokenizer.tokenize(text):
+#         lemma += lemmatizer.lemmatize(w, "v") + " "
+#     return lemma
 
 
 def spelling_correction(text):
@@ -136,46 +135,46 @@ def remove_singular_characters(input_str):
     return result_str
 
 
-def remove_singular_characters(input_str):
-    # Download the nltk punkt tokenizer if you haven't already
+# def remove_singular_characters(input_str):
+#     # Download the nltk punkt tokenizer if you haven't already
 
-    words_to_remove = [
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "q",
-        "r",
-        "s",
-        "t",
-        "u",
-        "v",
-        "w",
-        "x",
-        "y",
-        "z",
-    ]
+#     words_to_remove = [
+#         "b",
+#         "c",
+#         "d",
+#         "e",
+#         "f",
+#         "g",
+#         "h",
+#         "j",
+#         "k",
+#         "l",
+#         "m",
+#         "n",
+#         "o",
+#         "p",
+#         "q",
+#         "r",
+#         "s",
+#         "t",
+#         "u",
+#         "v",
+#         "w",
+#         "x",
+#         "y",
+#         "z",
+#     ]
 
-    # Tokenize the paragraph into words
-    words = word_tokenize(input_str)
+#     # Tokenize the paragraph into words
+#     words = word_tokenize(input_str)
 
-    # Filter out the specified words
-    filtered_words = [word for word in words if word.lower() not in words_to_remove]
+#     # Filter out the specified words
+#     filtered_words = [word for word in words if word.lower() not in words_to_remove]
 
-    # Join the filtered words back into a paragraph
-    filtered_paragraph = " ".join(filtered_words)
+#     # Join the filtered words back into a paragraph
+#     filtered_paragraph = " ".join(filtered_words)
 
-    return filtered_paragraph
+#     return filtered_paragraph
 
 
 def remove_newlines_tabs(text):
@@ -363,16 +362,16 @@ def expand_contractions(text, contraction_mapping=CONTRACTION_MAP):
     return String_Of_tokens
 
 
-def remove_words_not_in_english(text):
-    dictionary = set(nltk.corpus.words.words())
+# def remove_words_not_in_english(text):
+#     dictionary = set(nltk.corpus.words.words())
 
-    # Get the words in the sentence
-    words = nltk.word_tokenize(text)
+#     # Get the words in the sentence
+#     words = nltk.word_tokenize(text)
 
-    # Remove words not in the dictionary
-    words = [word for word in words if word in dictionary]
+#     # Remove words not in the dictionary
+#     words = [word for word in words if word in dictionary]
 
-    # Rejoin the words into a sentence
-    text = " ".join(words)
+#     # Rejoin the words into a sentence
+#     text = " ".join(words)
 
-    return text
+#     return text
