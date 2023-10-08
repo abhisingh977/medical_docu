@@ -22,8 +22,8 @@ import string
 PUNCT_TO_REMOVE = string.punctuation
 app = Flask(__name__)
 
-url = "https://9a61774e-dd62-4dcd-a475-9a1ccfcf89b6.us-east4-0.gcp.cloud.qdrant.io:6333"
-api_key = "ddrUQecTjYVIc39ckHemRSZP5sfiyWq1fLxvJpzUxFg-2PdeKbV1tw"
+url = " http://localhost"
+api_key = ""
 
 client = QdrantClient(
     url=url,
