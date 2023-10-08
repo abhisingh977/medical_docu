@@ -10,11 +10,9 @@ stopwords = stopwords.words("english")
 from contraction_map import CONTRACTION_MAP
 
 stoplist = set(stopwords)
-from nltk.tokenize import word_tokenize
+# from nltk.tokenize import word_tokenize
 import re
 import unidecode
-import nltk
-from nltk.tokenize import word_tokenize
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
 

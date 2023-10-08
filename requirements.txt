@@ -1,0 +1,8 @@
+flask
+gunicorn
+autocorrect
+Unidecode
+stopwords
+qdrant-client
+sentence-transformers
+beautifulsoup4
