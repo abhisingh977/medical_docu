@@ -22,8 +22,8 @@ import string
 PUNCT_TO_REMOVE = string.punctuation
 app = Flask(__name__)
 
-url = ""
-api_key = ""
+url = os.environ["URL"]
+api_key = os.environ["API_KEY"]
 
 client = QdrantClient(
     url=url,
@@ -31,7 +31,7 @@ client = QdrantClient(
 )
 collection_name = "medical_docu"
 retriever = SentenceTransformer("/app/model/")
-top_k = 5
+top_k = 3
 
 
 @app.route("/")
@@ -41,44 +41,38 @@ def index():
 
 @app.route("/search", methods=["POST"])
 def search():
+    try:
+        # Get input text from the form
+        input_text = request.form.get("text")
+        chunks = input_text.lower()
+        chunks = chunks.translate(str.maketrans("", "", PUNCT_TO_REMOVE))
+        chunks = " ".join(chunks.split())  # remove spaces
+        chunks = removing_special_characters(chunks)
+        chunks = remove_newlines_tabs(chunks)
+        chunks = strip_html_tags(chunks)
+        chunks = remove_links(chunks)
+        chunks = remove_whitespace(chunks)
+        chunks = accented_characters_removal(chunks)
+        chunks = reducing_incorrect_character_repeatation(chunks)
+        chunks = expand_contractions(chunks)
+        chunks = spelling_correction(chunks)
+        chunks = remove_singular_characters(chunks)
 
-    # Get input text from the form
-    input_text = request.form.get("text")
-    print("Searching...")
-    print(input_text)
-    chunks = input_text.lower()
-    chunks = chunks.translate(str.maketrans("", "", PUNCT_TO_REMOVE))
-    chunks = " ".join(chunks.split())  # remove spaces
-    chunks = removing_special_characters(chunks)
-    chunks = remove_newlines_tabs(chunks)
-    chunks = strip_html_tags(chunks)
-    chunks = remove_links(chunks)
-    chunks = remove_whitespace(chunks)
-    chunks = accented_characters_removal(chunks)
-    chunks = reducing_incorrect_character_repeatation(chunks)
-    chunks = expand_contractions(chunks)
-    chunks = spelling_correction(chunks)
-    # chunks = lemmatization(chunks)
-    chunks = remove_singular_characters(chunks)
-    # chunks = remove_words_not_in_english(chunks)
-    print("Searching...")
-    print(chunks)
-    encoded_query = retriever.encode(
-        chunks
-    ).tolist()  # generate embeddings for the question
+        encoded_query = retriever.encode(
+            chunks
+        ).tolist()  # generate embeddings for the question
 
-    result = client.search(
-        collection_name=collection_name,
-        query_vector=encoded_query,
-        limit=top_k,
-    )
-    print("Searching...")
-    print(result)
-    data = get_relevant_text(result)
+        result = client.search(
+            collection_name=collection_name,
+            query_vector=encoded_query,
+            limit=top_k,
+        )
 
-    return render_template("index.html", results=data)
-    # except Exception as e:
-    #     return render_template("index.html", error=str(e))
+        data = get_relevant_text(result)
+
+        return render_template("index.html", results=data)
+    except Exception as e:
+        return render_template("index.html", error=str(e))
 
 
 if __name__ == "__main__":
