@@ -8,7 +8,7 @@ The key goal of the Medical Docu is to make sure that medical professionals can 
 While google or chatgpt scrape data is available everywhere on web. Medical docu only have data available from prestigues and renowned medical research papers, journals and books.
 
 ## Why is this not already available:
-One of the the biggest problems collecting medical information is that they are avialable on web in form on blogs and articles. They are present in form of pdf(mostly) or ppt files.
+One of the the biggest problems collecting medical information is that they are not avialable on web in form on blogs and articles. They are present in form of pdf(mostly) or ppt files.
 
 ## Problem:
 Reading pdfs are hard to read for computer it does not have fix layout which makes it a really hard problem to get the clean information from pdf files especially when images and tabular data is involved.
@@ -42,7 +42,7 @@ The flask code is in main.py file.
 ### Current System Desgin:
 ![alt text](img/system_design.png?raw=true)
 
-## Future work: 
-This is v0 release for the project. I have created an end-to-end workflow for the project where everything works. But its just a start and there is a lot of of work remaning to be done. 
+Future Work
+This marks the v0 release of our project. While we have established an end-to-end workflow that functions effectively, it is only the beginning. There is a substantial amount of work ahead as we continue to enhance and expand the project's capabilities. Stay tuned for updates and improvements!
 
 # Thanks for reading
