@@ -44,5 +44,3 @@ The flask code is in main.py file.
 
 Future Work
 This marks the v0 release of our project. While we have established an end-to-end workflow that functions effectively, it is only the beginning. There is a substantial amount of work ahead as we continue to enhance and expand the project's capabilities. Stay tuned for updates and improvements!
-
-# Thanks for reading
