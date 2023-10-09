@@ -6,9 +6,7 @@ from get_relevant_page import get_relevant_text
 from func import (
     removing_special_characters,
     spelling_correction,
-    # lemmatization,
     remove_singular_characters,
-    # remove_words_not_in_english,
     remove_newlines_tabs,
     expand_contractions,
     accented_characters_removal,

@@ -2,13 +2,10 @@ from tqdm import tqdm
 import string
 import os
 from sentence_transformers import SentenceTransformer
-import sys
 from func import (
     removing_special_characters,
     spelling_correction,
-    lemmatization,
     remove_singular_characters,
-    remove_words_not_in_english,
     remove_newlines_tabs,
     expand_contractions,
     accented_characters_removal,
@@ -19,7 +16,6 @@ from func import (
 )
 import fitz
 
-# Importing Libraries
 from langchain.text_splitter import SentenceTransformersTokenTextSplitter
 import os
 import json
@@ -85,15 +81,13 @@ for i in tqdm(range(len(pdf_files))):
                 chunks = reducing_incorrect_character_repeatation(chunks)
                 chunks = expand_contractions(chunks)
                 chunks = spelling_correction(chunks)
-                chunks = lemmatization(chunks)
                 chunks = remove_singular_characters(chunks)
-                chunks = remove_words_not_in_english(chunks)
 
                 if len(str(chunks)) > 5:
                     txt = splitter.split_text(text=chunks)
 
                     for t in txt:
-                        embedding = model.encode(t).tolist()
+                        embedding = model.encode(t).tolist() # Convertinf txt to embedding.
                         data_to_append = {
                             "text": t,
                             "embedding": embedding,
