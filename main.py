@@ -1,14 +1,13 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session
 import os
+import uuid
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from get_relevant_page import get_relevant_text
 from func import (
     removing_special_characters,
     spelling_correction,
-    # lemmatization,
     remove_singular_characters,
-    # remove_words_not_in_english,
     remove_newlines_tabs,
     expand_contractions,
     accented_characters_removal,
@@ -27,12 +26,13 @@ api_key = os.environ["API_KEY"]
 
 client = QdrantClient(
     url=url,
+    timeout=50,
     api_key=api_key,
 )
 collection_name = "medical_docu"
 retriever = SentenceTransformer("/app/model/")
-top_k = 3
-
+top_k = 10
+app.secret_key = str(uuid.uuid1())
 
 @app.route("/")
 def index():
@@ -45,18 +45,6 @@ def search():
         # Get input text from the form
         input_text = request.form.get("text")
         chunks = input_text.lower()
-        chunks = chunks.translate(str.maketrans("", "", PUNCT_TO_REMOVE))
-        chunks = " ".join(chunks.split())  # remove spaces
-        chunks = removing_special_characters(chunks)
-        chunks = remove_newlines_tabs(chunks)
-        chunks = strip_html_tags(chunks)
-        chunks = remove_links(chunks)
-        chunks = remove_whitespace(chunks)
-        chunks = accented_characters_removal(chunks)
-        chunks = reducing_incorrect_character_repeatation(chunks)
-        chunks = expand_contractions(chunks)
-        chunks = spelling_correction(chunks)
-        chunks = remove_singular_characters(chunks)
 
         encoded_query = retriever.encode(
             chunks
@@ -69,7 +57,7 @@ def search():
         )
 
         data = get_relevant_text(result)
-
+        print(data)
         return render_template("index.html", results=data)
     except Exception as e:
         return render_template("index.html", error=str(e))

@@ -1,3 +1,15 @@
+import urllib.parse
+
+def transform_text(input_text):
+    # Use urllib.parse to quote the input text
+    transformed_text = urllib.parse.quote(input_text)
+    return transformed_text
+
+def contact(filename, page_no):
+    filename = transform_text(filename)
+    page_no = page_no
+    return f"https://storage.googleapis.com/medical_docu_pdfs/{filename}#page={page_no}"
+
 def get_relevant_text(result):
     """
     Get the relevant plot for a given question
@@ -13,12 +25,10 @@ def get_relevant_text(result):
 
     context = [
         {
-            "filename": x.payload["filename"],
-            "page_no": x.payload["page_no"],
+            "pdf_link": contact(x.payload["filename"], x.payload["page_no"]),
             "text": x.payload["text"],
         }
         for x in sorted_result
     ]  # extract title and payload from result
   
     return context
-

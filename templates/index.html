@@ -91,7 +91,7 @@
         <h1>Medical Document Search</h1>
         <form action="/search" method="POST" id="search-form">
             <label for="search-query">Enter your search query:</label>
-            <input type="text" id="search-query" name="text" placeholder="Search...">
+            <input type="text" id="search-query" name="text" placeholder="Search..." value="{{ request.form['text'] }}">
             <button type="submit">Search</button>
         </form>
         <div class="results-box">
@@ -99,8 +99,8 @@
             <ul id="results-list">
                 {% if results %}
                 {% for result in results %}
-                <li>Source: {{ result.filename }} <br>
-                    Page_no: {{ result.page_no }} <br>
+                <li>
+                    pdf_link: <a href="{{ result.pdf_link }}">PDF Link</a> <br>
                     Relevant text: {{ result.text }} <br> <br> </li>
                 {% endfor %}
                 {% endif %}
