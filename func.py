@@ -1,11 +1,7 @@
 from autocorrect import Speller
 import re
 import unidecode
-import nltk
 from contraction_map import CONTRACTION_MAP
-
-import re
-import unidecode
 from bs4 import BeautifulSoup
 
 
