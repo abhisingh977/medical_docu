@@ -98,7 +98,34 @@
             width: 100%;
             height: 100%;
         }
+
+        .loading-animation {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
+
 </head>
 
 <body>
@@ -109,8 +136,15 @@
             <input type="text" id="search-query" name="text" placeholder="Search..." value="{{ request.form['text'] }}">
             <button type="submit">Search</button>
         </form>
+
         <div class="results-box">
             <h2>Search Results</h2>
+            <!-- Loading Animation -->
+            <div id="loading-animation" class="loading-animation">
+                <div class="loading-spinner"></div>
+                While you wait, know that our AI is focused on providing you with meticulously curated results that
+                align with the expertise of a fellow medical professional.
+            </div>
             <ul id="results-list">
                 {% if results %}
                 {% for result in results %}
@@ -128,6 +162,24 @@
             </ul>
         </div>
     </div>
+
+    <script>
+        // JavaScript code here
+        function showLoadingAnimation() {
+            document.getElementById("loading-animation").style.display = "block";
+        }
+
+        function hideLoadingAnimation() {
+            document.getElementById("loading-animation").style.display = "none";
+            document.getElementById("results-list").style.display = "block";
+        }
+
+        document.getElementById("search-form").addEventListener("submit", function (event) {
+
+            showLoadingAnimation();
+
+        });
+    </script>
 </body>
 
 </html>
