@@ -97,14 +97,18 @@
         <div class="results-box">
             <h2>Search Results</h2>
             <ul id="results-list">
-                {% if results %}
-                {% for result in results %}
-                <li>
-                    pdf_link: <a href="{{ result.pdf_link }}">PDF Link</a> <br>
-                    Relevant text: {{ result.text }} <br> <br> </li>
-                {% endfor %}
-                {% endif %}
-            </ul>
+                <ul id="results-list">
+                    {% if results %}
+                    {% for result in results %}
+                    <li>
+                        <a href="{{ result.pdf_link }}">Open PDF in new page</a> <br>
+                        Relevant text: {{ result.text }} <br>
+                    </li>
+                    <embed src="{{ result.pdf_link }}" width="800" height="500">
+                    <br> <br> <br>
+                    {% endfor %}
+                    {% endif %}
+                </ul>
         </div>
     </div>
 </body>
