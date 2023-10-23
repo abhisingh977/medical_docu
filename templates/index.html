@@ -83,6 +83,21 @@
             margin-bottom: 10px;
             /* You can adjust this value as needed for your desired spacing */
         }
+
+        .responsive-iframe {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            /* 500 / 800 (adjust this value for the desired aspect ratio) */
+        }
+
+        .responsive-iframe iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 
@@ -97,18 +112,20 @@
         <div class="results-box">
             <h2>Search Results</h2>
             <ul id="results-list">
-                <ul id="results-list">
-                    {% if results %}
-                    {% for result in results %}
-                    <li>
-                        <a href="{{ result.pdf_link }}">Open PDF in new page</a> <br>
-                        Relevant text: {{ result.text }} <br>
-                    </li>
-                    <embed src="{{ result.pdf_link }}" width="800" height="500">
-                    <br> <br> <br>
-                    {% endfor %}
-                    {% endif %}
-                </ul>
+                {% if results %}
+                {% for result in results %}
+                <li>
+                    <a href="{{ result.pdf_link }}" target="_blank">Open PDF in new page</a> <br>
+                    Relevant text: {{ result.text }} <br>
+                </li>
+                <div class="responsive-iframe">
+                    <iframe src="{{ result.pdf_link }}" allowfullscreen="" frameborder="0">
+                    </iframe>
+                </div>
+                <br> <br> <br>
+                {% endfor %}
+                {% endif %}
+            </ul>
         </div>
     </div>
 </body>

@@ -7,7 +7,7 @@ def transform_text(input_text):
 
 def contact(filename, page_no):
     filename = transform_text(filename)
-    page_no = page_no
+    page_no = str(int(page_no)+1)
     return f"https://storage.googleapis.com/medical_docu_pdfs/{filename}#page={page_no}"
 
 def get_relevant_text(result):
