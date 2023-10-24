@@ -152,10 +152,8 @@
                     <a href="{{ result.pdf_link }}" target="_blank">Open PDF in new page</a> <br>
                     Relevant text: {{ result.text }} <br>
                 </li>
-                <div class="responsive-iframe">
-                    <iframe src="{{ result.pdf_link }}" allowfullscreen="" frameborder="0">
-                    </iframe>
-                </div>
+                <img src="data:image/jpeg;base64, {{ result.pdf_image }}" alt="Relevant Page">
+
                 <br> <br> <br>
                 {% endfor %}
                 {% endif %}
