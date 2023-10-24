@@ -1,21 +1,9 @@
 from flask import Flask, request, render_template, session
 import os
-import uuid
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from get_relevant_page import get_relevant_text
-from func import (
-    removing_special_characters,
-    spelling_correction,
-    remove_singular_characters,
-    remove_newlines_tabs,
-    expand_contractions,
-    accented_characters_removal,
-    reducing_incorrect_character_repeatation,
-    remove_links,
-    remove_whitespace,
-    strip_html_tags,
-)
+
 import string
 
 PUNCT_TO_REMOVE = string.punctuation
@@ -26,13 +14,12 @@ api_key = os.environ["API_KEY"]
 
 client = QdrantClient(
     url=url,
-    timeout=50,
+    timeout=100,
     api_key=api_key,
 )
 collection_name = "medical_docu"
 retriever = SentenceTransformer("/app/model/")
 top_k = 10
-app.secret_key = str(uuid.uuid1())
 
 @app.route("/")
 def index():
