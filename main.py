@@ -1,7 +1,7 @@
-from flask import Flask, request, render_template, session
+from flask import Flask, request, render_template
 import os
 from sentence_transformers import SentenceTransformer
-from qdrant_client import QdrantClient
+from qdrant_client import QdrantClient, models
 from get_relevant_page import get_relevant_text
 
 import string
@@ -19,7 +19,8 @@ client = QdrantClient(
 )
 collection_name = "medical_docu"
 retriever = SentenceTransformer("/app/model/")
-top_k = 10
+top_k = 5
+
 
 @app.route("/")
 def index():
@@ -28,26 +29,25 @@ def index():
 
 @app.route("/search", methods=["POST"])
 def search():
-    try:
-        # Get input text from the form
-        input_text = request.form.get("text")
-        chunks = input_text.lower()
 
-        encoded_query = retriever.encode(
-            chunks
-        ).tolist()  # generate embeddings for the question
+    # Get input text from the form
+    input_text = request.form.get("text")
+    chunks = input_text.lower()
 
-        result = client.search(
-            collection_name=collection_name,
-            query_vector=encoded_query,
-            limit=top_k,
-        )
+    encoded_query = retriever.encode(
+        chunks
+    ).tolist()  # generate embeddings for the question
 
-        data = get_relevant_text(result)
-        print(data)
-        return render_template("index.html", results=data)
-    except Exception as e:
-        return render_template("index.html", error=str(e))
+    result = client.search(
+        collection_name=collection_name,
+        query_vector=encoded_query,
+        search_params=models.SearchParams(hnsw_ef=128, indexed_only=True, exact=False),
+        limit=top_k,
+    )
+    print(f"results: {result}")
+    data = get_relevant_text(result)
+
+    return render_template("index.html", results=data)
 
 
 if __name__ == "__main__":

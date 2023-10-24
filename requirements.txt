@@ -6,3 +6,4 @@ stopwords
 qdrant-client
 sentence-transformers
 beautifulsoup4
+PyMuPDF==1.23.5
