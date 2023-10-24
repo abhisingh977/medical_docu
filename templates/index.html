@@ -84,19 +84,16 @@
             /* You can adjust this value as needed for your desired spacing */
         }
 
-        .responsive-iframe {
-            position: relative;
-            width: 100%;
-            padding-bottom: 100%;
-            /* 500 / 800 (adjust this value for the desired aspect ratio) */
+
+        .image-container {
+            text-align: center;
         }
 
-        .responsive-iframe iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            /* Adjust this as needed */
+            margin: 0 auto;
         }
 
         .loading-animation {
@@ -149,11 +146,14 @@
                 {% if results %}
                 {% for result in results %}
                 <li>
-                    <a href="{{ result.pdf_link }}" target="_blank">Open PDF in new page</a> <br>
+                    <a href="{{ result.pdf_link }}" target="_blank">Open Full PDF in New Page</a> <br>
                     Relevant text: {{ result.text }} <br>
                 </li>
-                <img src="data:image/jpeg;base64, {{ result.pdf_image }}" alt="Relevant Page">
-
+                <div class="image-container">
+                    <img src="data:image/jpeg;base64, {{ result.pdf_image }}" alt="Relevant Page">
+                </div>
+                <br>
+                <a href="{{ result.pdf_link }}" target="_blank">Continue with this PDF </a> <br>
                 <br> <br> <br>
                 {% endfor %}
                 {% endif %}
