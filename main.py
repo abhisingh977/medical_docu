@@ -14,7 +14,7 @@ api_key = os.environ["API_KEY"]
 
 
 collection_name = "medical_docu"
-retriever = SentenceTransformer("/app/model/")
+retriever = SentenceTransformer("model/")
 top_k = 5
 max_retries = 3
 retry_delay = 2  # You can adjust this delay based on your needs
@@ -29,7 +29,7 @@ def index():
 def search():
     client = QdrantClient(
         url=url,
-        timeout=100,
+        timeout=200,
         api_key=api_key,
     )
     try:
@@ -51,7 +51,7 @@ def search():
                 )
 
                 data = get_relevant_text(result)
-                print(data)
+                # print(data)
                 return render_template("index.html", results=data)
             except TimeoutError as e:
                 # Handle the timeout error here, and then retry after a delay
