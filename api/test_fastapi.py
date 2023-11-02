@@ -1,6 +1,6 @@
 import requests
 
-url = "http://127.0.0.1:8000/get_embedding_from_input/"  # Change the URL to your server's address
+url = "http://0.0.0.0:8000/get_embedding_from_input/"  # Change the URL to your server's address
 
 input_data = {
     "input_text": "This is a test sentence for embedding generation."

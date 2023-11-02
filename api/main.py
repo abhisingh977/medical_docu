@@ -10,7 +10,7 @@ app = FastAPI()
 async def read_root():
     return {"message": "Hello, World!"}
 
-retriever = SentenceTransformer("/model/")
+retriever = SentenceTransformer("model/")
 
 @app.post("/get_embedding_from_input/")
 async def convert_string_to_list(input_text_json: Dict[str, str]) -> List[List[float]]:
