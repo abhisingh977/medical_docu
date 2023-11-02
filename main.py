@@ -3,7 +3,6 @@ import os
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from get_relevant_page import get_relevant_text
-import time
 import string
 
 PUNCT_TO_REMOVE = string.punctuation
@@ -41,28 +40,18 @@ def search():
             chunks
         ).tolist()  # generate embeddings for the question
 
-        retries = 0
-        while retries < max_retries:
-            try:
-                result = client.search(
-                    collection_name=collection_name,
-                    query_vector=encoded_query,
-                    limit=top_k,
-                )
 
-                data = get_relevant_text(result)
-                # print(data)
-                return render_template("index.html", results=data)
-            except TimeoutError as e:
-                # Handle the timeout error here, and then retry after a delay
-                print(f"Retry {retries + 1}: Timeout Error - {e}")
-                retries += 1
-                time.sleep(retry_delay)
-
-        # If all retries fail, return an error message
-        return render_template(
-            "index.html", error="Search operation failed after multiple retries."
+        result = client.search(
+            collection_name=collection_name,
+            query_vector=encoded_query,
+            limit=top_k,
         )
+
+        data = get_relevant_text(result)
+
+        return render_template("index.html", results=data)
+
+
     except Exception as e:
         return render_template("index.html", error=str(e))
 
