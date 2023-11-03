@@ -4,9 +4,11 @@ from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from get_relevant_page import get_relevant_text
 import string
+import requests
 
 PUNCT_TO_REMOVE = string.punctuation
 app = Flask(__name__)
+embedding_url = "http://0.0.0.0:8000/get_embedding_from_input/"  
 
 url = os.environ["URL"]
 api_key = os.environ["API_KEY"]
@@ -15,8 +17,6 @@ api_key = os.environ["API_KEY"]
 collection_name = "medical_docu"
 retriever = SentenceTransformer("model/")
 top_k = 5
-max_retries = 3
-retry_delay = 2  # You can adjust this delay based on your needs
 
 
 @app.route("/")
@@ -35,15 +35,18 @@ def search():
         # Get input text from the form
         input_text = request.form.get("text")
         chunks = input_text.lower()
+        input_data = {
+        "input_text": chunks
+        }
+        response = requests.post(url, json=input_data)
 
-        encoded_query = retriever.encode(
-            chunks
-        ).tolist()  # generate embeddings for the question
+        if response.status_code == 200:
+            embeddings = response.json()
 
 
         result = client.search(
             collection_name=collection_name,
-            query_vector=encoded_query,
+            query_vector=embeddings[0],
             limit=top_k,
         )
 
