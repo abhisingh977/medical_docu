@@ -4,9 +4,7 @@ FROM python:3.8.0-slim
 COPY model /app/model
 COPY templates /app/templates
 COPY main.py /app/main.py
-COPY func.py /app/func.py
 COPY get_relevant_page.py /app/get_relevant_page.py
-COPY contraction_map.py /app/contraction_map.py
 COPY requirements.txt /app/requirements.txt
 # Sets the working directory
 WORKDIR /app

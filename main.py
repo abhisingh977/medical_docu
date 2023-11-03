@@ -1,14 +1,15 @@
 from flask import Flask, request, render_template
 import os
+import httpx
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from get_relevant_page import get_relevant_text
-import string
 import requests
+from threading import Thread
 
-PUNCT_TO_REMOVE = string.punctuation
+
 app = Flask(__name__)
-embedding_url = "http://0.0.0.0:8000/get_embedding_from_input/"  
+embedding_url = "https://embeddings-svgzkfaqoa-uc.a.run.app"  
 
 url = os.environ["URL"]
 api_key = os.environ["API_KEY"]
@@ -18,11 +19,17 @@ collection_name = "medical_docu"
 retriever = SentenceTransformer("model/")
 top_k = 5
 
+def make_request(embedding_url):
+    response = httpx.get(embedding_url)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    try:
+        Thread(target=make_request, args=(embedding_url,)).start()
+    except httpx.ReadTimeout:
+        pass
 
+    return render_template("index.html")
 
 @app.route("/search", methods=["POST"])
 def search():
@@ -38,7 +45,7 @@ def search():
         input_data = {
         "input_text": chunks
         }
-        response = requests.post(url, json=input_data)
+        response = requests.post(embedding_url+"/"+"get_embedding_from_input/", json=input_data)
 
         if response.status_code == 200:
             embeddings = response.json()
