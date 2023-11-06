@@ -19,15 +19,14 @@ def pdf_to_image(filename, page_no, embedd_text=None):
     filename = transform_text(filename)
     path = f"https://storage.googleapis.com/zospital_medical_pdfs/anesthesia/books/{filename}/{page_no}.pdf"
     response = requests.get(path)
-    page = page_no.split("_")[1]
-    page_no = int(page+1)
+
 
     if response.status_code == 200:
         # Read the content into a BytesIO object
         pdf_data = BytesIO(response.content)
         # Open he PDF using PyMuPDF
         with fitz.open("pdf", pdf_data) as doc:
-            page = doc[page_no]
+            page = doc[0]
 
             text_instances = page.search_for(embedd_text)
 
@@ -52,7 +51,7 @@ def contact(filename, page_no):
     return f"https://storage.googleapis.com/zospital_medical_pdfs/anesthesia/books/{filename}/{page_no}.pdf"
 
 def get_relevant_text(result):
-    result = result[:10]
+    result = result[:5]
 
     context = [
         {
@@ -64,6 +63,7 @@ def get_relevant_text(result):
             "page_no": str(int(x.payload["page_no"].split("_")[1])+1),
             "name": x.payload["book_name"],
             "year": x.payload["year"],
+            "score": x.score,
         }
         for x in result
     ]  # extract title and payload from result
