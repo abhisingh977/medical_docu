@@ -4,7 +4,7 @@ from io import BytesIO
 import fitz
 import base64
 
-dpi = 200
+dpi = 140
 mat = fitz.Matrix(dpi / 72, dpi / 72)
 highlight_color = (1, 1, 0)
 

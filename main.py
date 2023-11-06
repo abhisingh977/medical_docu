@@ -53,7 +53,7 @@ def search_client(endpoint,payload, headers):
 
 def make_request(embedding_url):
     try:
-        response = httpx.requests(embedding_url,timeout=1)
+        response = requests.get(embedding_url,timeout=1)
     except:
         pass
 
