@@ -146,8 +146,10 @@
                 {% if results %}
                 {% for result in results %}
                 <li>
-                    <a href="{{ result.pdf_link }}" target="_blank">Open Full PDF in New Page</a> <br>
                     Relevant text: {{ result.text }} <br>
+                    Page No: {{ result.page_no }} <br>
+                    Name: {{ result.name }} <br>
+                    Year of Publication: {{ result.year }} <br>
                 </li>
                 <div class="image-container">
                     <img src="data:image/jpeg;base64, {{ result.pdf_image }}" alt="Relevant Page">

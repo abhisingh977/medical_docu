@@ -17,9 +17,10 @@ def transform_text(input_text):
 
 def pdf_to_image(filename, page_no, embedd_text=None):
     filename = transform_text(filename)
-    path = f"https://storage.googleapis.com/medical_docu_pdfs/{filename}"
+    path = f"https://storage.googleapis.com/zospital_medical_pdfs/anesthesia/books/{filename}/{page_no}.pdf"
     response = requests.get(path)
-    page_no = int(page_no)
+    page = page_no.split("_")[1]
+    page_no = int(page+1)
 
     if response.status_code == 200:
         # Read the content into a BytesIO object
@@ -46,32 +47,25 @@ def pdf_to_image(filename, page_no, embedd_text=None):
 
 def contact(filename, page_no):
     filename = transform_text(filename)
+    page_no = page_no.split("_")[1]
     page_no = str(int(page_no) + 1)
-    return f"https://storage.googleapis.com/medical_docu_pdfs/{filename}#page={page_no}"
-
+    return f"https://storage.googleapis.com/zospital_medical_pdfs/anesthesia/books/{filename}/{page_no}.pdf"
 
 def get_relevant_text(result):
-    """
-    Get the relevant plot for a given question
-
-    Args:
-        question (str): What do we want to know?
-        top_k (int): Top K results to return
-
-    Returns:
-        context (List[str]):
-    """
-    sorted_result = sorted(result, key=lambda x: x.score, reverse=True)
+    result = result[:10]
 
     context = [
         {
-            "pdf_link": contact(x.payload["filename"], x.payload["page_no"]),
+            "pdf_link": contact(x.payload["book_name"], x.payload["page_no"]),
             "pdf_image": pdf_to_image(
-                x.payload["filename"], x.payload["page_no"], x.payload["embeded_text"]
+                x.payload["book_name"], x.payload["page_no"], x.payload["text"]
             ),
             "text": x.payload["text"],
+            "page_no": str(int(x.payload["page_no"].split("_")[1])+1),
+            "name": x.payload["book_name"],
+            "year": x.payload["year"],
         }
-        for x in sorted_result
+        for x in result
     ]  # extract title and payload from result
 
     return context
