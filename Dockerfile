@@ -1,7 +1,6 @@
 FROM python:3.8.0-slim
 
 # Copy local code to the container image
-COPY model /app/model
 COPY templates /app/templates
 COPY main.py /app/main.py
 COPY get_relevant_page.py /app/get_relevant_page.py
