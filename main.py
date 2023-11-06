@@ -1,7 +1,6 @@
 from flask import Flask, request, render_template
 import os
 import httpx
-from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from get_relevant_page import get_relevant_text
 import requests
@@ -10,6 +9,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 app = Flask(__name__)
+app.config['TIMEOUT'] = 200
+
 embedding_url = "https://embeddings-svgzkfaqoa-uc.a.run.app"  
 
 url1 = os.environ["URL1"]
@@ -20,10 +21,7 @@ url2 = os.environ["URL2"]
 api_key2 = os.environ["API_KEY2"]
 collection_name2 = "anesthesia"
 
-
-# retriever = SentenceTransformer("model/")
 top_k = 10
-
 
 def search_client(client, collection_name, query_vector, top_k=10):
     res =  client.search(
@@ -60,35 +58,36 @@ def search():
         timeout=60,
         api_key=api_key2,
     )
-    # try:
+    try:
         # Get input text from the form
-    input_text = request.form.get("text")
-    chunks = input_text.lower()
-    input_data = {
-    "input_text": chunks
-    }
-    # print(input_data)
-    response = requests.post(embedding_url+"/"+"get_embedding_from_input/", json=input_data)
+        input_text = request.form.get("text")
+        chunks = input_text.lower()
+        input_data = {
+        "input_text": chunks
+        }
 
-    if response.status_code == 200:
-        embeddings = response.json()
+        response = requests.post(embedding_url+"/"+"get_embedding_from_input/", json=input_data)
 
-    # print(embeddings)
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        future1 = executor.submit(search_client, client1, collection_name1, embeddings[0], top_k)
-        future2 = executor.submit(search_client, client2, collection_name2, embeddings[0], top_k)
-
-    result1 = future1.result()
-    result2 = future2.result()
-    result1.extend(result2)
-    sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
-
-    return render_template("index.html", results=sorted_res)
+        if response.status_code == 200:
+            embeddings = response.json()
 
 
-    # except Exception as e:
-    #     return render_template("index.html", error=str(e))
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future1 = executor.submit(search_client, client1, collection_name1, embeddings[0], top_k)
+            future2 = executor.submit(search_client, client2, collection_name2, embeddings[0], top_k)
+
+        result1 = future1.result()
+        result2 = future2.result()
+        result1.extend(result2)
+        sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
+
+
+        return render_template("index.html", results=sorted_res)
+
+
+    except Exception as e:
+        return render_template("index.html", error=str(e))
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=os.getenv("PORT", 8080))
+    app.run(host="0.0.0.0", port=os.getenv("PORT", 8080))
