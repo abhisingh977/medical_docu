@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template
 import os
-import httpx
 from get_relevant_page import get_relevant_text
 import requests
 from threading import Thread
@@ -54,7 +53,7 @@ def search_client(endpoint,payload, headers):
 
 def make_request(embedding_url):
     try:
-        response = httpx.get(embedding_url,timeout=1)
+        response = httpx.requests(embedding_url,timeout=1)
     except:
         pass
 
