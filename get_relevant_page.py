@@ -4,7 +4,7 @@ from io import BytesIO
 import fitz
 import base64
 
-dpi = 300
+dpi = 200
 mat = fitz.Matrix(dpi / 72, dpi / 72)
 highlight_color = (1, 1, 0)
 
@@ -40,7 +40,6 @@ def pdf_to_image(filename, page_no, embedd_text=None):
             image = image.tobytes()
             image = base64.b64encode(image).decode("utf-8")
 
-            # print(image)
     return image
 
 
@@ -55,15 +54,15 @@ def get_relevant_text(result):
 
     context = [
         {
-            "pdf_link": contact(x.payload["book_name"], x.payload["page_no"]),
+            "pdf_link": contact(x["payload"]["book_name"], x["payload"]["page_no"]),
             "pdf_image": pdf_to_image(
-                x.payload["book_name"], x.payload["page_no"], x.payload["text"]
+                x["payload"]["book_name"], x["payload"]["page_no"], x["payload"]["text"]
             ),
-            "text": x.payload["text"],
-            "page_no": str(int(x.payload["page_no"].split("_")[1])+1),
-            "name": x.payload["book_name"],
-            "year": x.payload["year"],
-            "score": x.score,
+            "text": x["payload"]["text"],
+            "page_no": str(int(x["payload"]["page_no"].split("_")[1])+1),
+            "name": x["payload"]["book_name"],
+            "year": x["payload"]["year"],
+            "score": x["score"],
         }
         for x in result
     ]  # extract title and payload from result

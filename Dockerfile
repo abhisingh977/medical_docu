@@ -19,4 +19,4 @@ RUN pip3 install -r requirements.txt
 ENV PORT 8080
 EXPOSE 8080
 # Run the web service on container startup
-CMD exec gunicorn --bind :$PORT --workers 2 --threads 4 --timeout 300 main:app
+CMD exec gunicorn --bind :$PORT --workers 2 --threads 4 --timeout 500 main:app
