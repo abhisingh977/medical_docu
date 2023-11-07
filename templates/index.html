@@ -138,6 +138,17 @@
                 transform: rotate(360deg);
             }
         }
+
+        .year-container {
+            display: flex;
+            align-items: center;
+
+
+        }
+
+        .year-container label {
+            margin-right: 10px;
+        }
     </style>
 
 </head>
@@ -146,8 +157,18 @@
     <div class="container">
         <h1>Medical Document Search</h1>
         <form action="/search" method="POST" id="search-form">
-            <label for="search-query">Enter your search query:</label>
-            <input type="text" id="search-query" name="text" placeholder="Search..." value="{{ request.form['text'] }}">
+
+            <input type="text" id="search-query" name="text" placeholder="Enter your search here..."
+                value="{{ request.form['text'] }}">
+            <br>
+
+            <div class="year-container">
+                <b><label for="filter">Filter:</label></b>
+                <b><label for="start-year">Start Year:</label></b>
+                <select id="start-year" name="start_year"></select>
+                <b> <label for="end-year">&nbsp &nbsp End Year:</label></b>
+                <select id="end-year" name="end_year"></select>
+            </div> <br>
             <button type="submit">Search</button>
         </form>
 
@@ -172,29 +193,80 @@
                     <img src="data:image/jpeg;base64, {{ result.pdf_image }}" alt="Relevant Page">
                 </div>
                 <br>
-                <a href="{{ result.pdf_link }}" target="_blank">Continue with this PDF </a> <br>
+                <a href="{{ result.pdf_link }}" target="_blank">Continue with this PDF </a> <br> <br>
                 <br> <br> <br>
                 {% endfor %}
                 {% endif %}
             </ul>
         </div>
     </div>
+    <script type="text/javascript">
+        let startYear = 1900;
+        let endYear = new Date().getFullYear();
+        let defaultStartYear = 1984;
+        let defaultEndYear = new Date().getFullYear();
+        let optionsStart = "";
+        let optionsEnd = "";
 
-    <script>
-        // JavaScript code here
-        function showLoadingAnimation() {
-            document.getElementById("loading-animation").style.display = "block";
+        for (let year = startYear; year <= endYear; year++) {
+            optionsStart += "<option" + (year === defaultStartYear ? " selected" : "") + ">" + year + "</option>";
+            optionsEnd += "<option" + (year === defaultEndYear ? " selected" : "") + ">" + year + "</option>";
         }
 
+        document.getElementById("start-year").innerHTML = optionsStart;
+        document.getElementById("end-year").innerHTML = optionsEnd;
+
+        // Function to show the loading animation
+        function showLoadingAnimation() {
+            document.getElementById("loading-animation").style.display = "block";
+            startAnimation();
+        }
+
+        // Function to hide the loading animation and display the results
         function hideLoadingAnimation() {
             document.getElementById("loading-animation").style.display = "none";
             document.getElementById("results-list").style.display = "block";
         }
 
+        // Function to start the animation
+        function startAnimation() {
+            // Code to start the animation
+            // Replace this with your actual animation code
+            var spinner = document.querySelector(".loading-spinner");
+            spinner.style.animationPlayState = "running";
+        }
+
+        // Function to stop the animation
+        function stopAnimation() {
+            // Code to stop the animation
+            // Replace this with your actual animation code
+            var spinner = document.querySelector(".loading-spinner");
+            spinner.style.animationPlayState = "paused";
+        }
+
+        // Add event listener to the form submission
         document.getElementById("search-form").addEventListener("submit", function (event) {
+            const startYear = parseInt(document.getElementById("start-year").value);
+            const endYear = parseInt(document.getElementById("end-year").value);
+
+            if (endYear < startYear) {
+                event.preventDefault(); // Prevent form submission
+                alert("Invalid year range. End year cannot be less than start year.");
+                return;
+            }
 
             showLoadingAnimation();
+        });
 
+        // Listen for visibility change events
+        document.addEventListener("visibilitychange", function () {
+            // If the page becomes visible
+            if (document.visibilityState === "visible") {
+                startAnimation();
+            } else {
+                // If the page becomes hidden
+                stopAnimation();
+            }
         });
     </script>
 </body>
