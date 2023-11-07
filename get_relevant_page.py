@@ -51,7 +51,7 @@ def contact(filename, page_no):
     filename = transform_text(filename)
     page_no = page_no.split("_")[1]
     page_no = str(int(page_no) + 1)
-    return f"https://storage.googleapis.com/zostipal_books/anesthesia/books/{filename}.pdf#{page_no}"
+    return f"https://storage.googleapis.com/zostipal_books/anesthesia/books/{filename}.pdf#page={page_no}"
 
 def get_relevant_text(result):
     result = result[:5]

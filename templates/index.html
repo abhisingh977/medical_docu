@@ -2,6 +2,23 @@
 <html lang="en">
 
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X14CB1KS9Q"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-X14CB1KS9Q');
+    </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MFKV4DJ9CR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-MFKV4DJ9CR');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Document Search</title>
@@ -146,10 +163,10 @@
                 {% if results %}
                 {% for result in results %}
                 <li>
-                    Relevant text: {{ result.text }} <br>
-                    Page No: {{ result.page_no }} <br>
-                    Name: {{ result.name }} <br>
-                    Year of Publication: {{ result.year }} <br>
+                    <b>Relevant text: {{ result.text }}</b> <br>
+                    <b>Page No: {{ result.page_no }}</b> <br>
+                    <b>Name: {{ result.name }}</b> <br>
+                    <b>Year of Publication: {{ result.year }}</b> <br>
                 </li>
                 <div class="image-container">
                     <img src="data:image/jpeg;base64, {{ result.pdf_image }}" alt="Relevant Page">
