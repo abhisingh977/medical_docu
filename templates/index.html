@@ -182,19 +182,48 @@
 
     <script>
         // JavaScript code here
+        // Function to show the loading animation
         function showLoadingAnimation() {
             document.getElementById("loading-animation").style.display = "block";
+            startAnimation();
         }
 
+        // Function to hide the loading animation and display the results
         function hideLoadingAnimation() {
             document.getElementById("loading-animation").style.display = "none";
             document.getElementById("results-list").style.display = "block";
         }
 
+        // Function to start the animation
+        function startAnimation() {
+            // Code to start the animation
+            // Replace this with your actual animation code
+            var spinner = document.querySelector(".loading-spinner");
+            spinner.style.animationPlayState = "running";
+        }
+
+        // Function to stop the animation
+        function stopAnimation() {
+            // Code to stop the animation
+            // Replace this with your actual animation code
+            var spinner = document.querySelector(".loading-spinner");
+            spinner.style.animationPlayState = "paused";
+        }
+
+        // Event listener for the search form submission
         document.getElementById("search-form").addEventListener("submit", function (event) {
-
             showLoadingAnimation();
+        });
 
+        // Listen for visibility change events
+        document.addEventListener("visibilitychange", function () {
+            // If the page becomes visible
+            if (document.visibilityState === "visible") {
+                startAnimation();
+            } else {
+                // If the page becomes hidden
+                stopAnimation();
+            }
         });
     </script>
 </body>
