@@ -3,8 +3,10 @@ import requests
 from io import BytesIO
 import fitz
 import base64
+import re 
 
 dpi = 140
+
 mat = fitz.Matrix(dpi / 72, dpi / 72)
 highlight_color = (1, 1, 0)
 
@@ -16,6 +18,7 @@ def transform_text(input_text):
 
 
 def pdf_to_image(filename, page_no, embedd_text=None):
+    
     filename = transform_text(filename)
     path = f"https://storage.googleapis.com/zospital_medical_pdfs/anesthesia/books/{filename}/{page_no}.pdf"
     response = requests.get(path)
@@ -44,10 +47,11 @@ def pdf_to_image(filename, page_no, embedd_text=None):
 
 
 def contact(filename, page_no):
+    filename  = re.sub(r'[^a-zA-Z\s]', '', filename)
     filename = transform_text(filename)
     page_no = page_no.split("_")[1]
     page_no = str(int(page_no) + 1)
-    return f"https://storage.googleapis.com/zospital_medical_pdfs/anesthesia/books/{filename}/{page_no}.pdf"
+    return f"https://storage.googleapis.com/zostipal_books/anesthesia/books/{filename}.pdf#{page_no}"
 
 def get_relevant_text(result):
     result = result[:5]
