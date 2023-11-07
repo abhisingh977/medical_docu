@@ -143,7 +143,21 @@ def search():
         return render_template("index.html", results=sorted_res)
 
     except Exception as e:
-        return render_template("index.html", error=str(e))
+        return '''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Server Limit Reached</title>
+        </head>
+        <body>
+            <h1>Server Limit Reached</h1>
+            <p>Apologies, the server cannot handle any more requests at the moment. Please refresh or try again later.
+                Thanks </p>
+        </body>
+        </html>
+    '''
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=os.getenv("PORT", 8080))
