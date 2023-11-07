@@ -6,12 +6,11 @@ from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 import json
 import logging
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.config['TIMEOUT'] = 500
+app.config['TIMEOUT'] = 5000
 
 embedding_url = os.environ["embedding_url"]
 
@@ -69,42 +68,45 @@ def index():
 @app.route("/search", methods=["POST"])
 def search():
 
-    try:
-    # Get input text from the form
-        input_text = request.form.get("text")
-        chunks = input_text.lower()
-        input_data = {
-        "input_text": chunks
-        }
+# Get input text from the form
+    input_text = request.form.get("text")
+    start_year = int(request.form.get("start_year"))
+    end_year = int(request.form.get("end_year"))
+    print(start_year, end_year)
+    chunks = input_text.lower()
+    input_data = {
+    "input_text": chunks
+    }
 
-        response = requests.post(embedding_url+"/"+"get_embedding_from_input/", json=input_data)
+    response = requests.post(embedding_url+"/"+"get_embedding_from_input/", json=input_data)
 
-        if response.status_code == 200:
-            embedding = response.json()
-        else:
-            logging.info(f"No embedding: {str(embedding)}")
+    if response.status_code == 200:
+        embedding = response.json()
 
-        payload = {
-        "vector": embedding[0],
-        "limit": 10,
-        "with_payload": True,
-        }
+    else:
+        logging.info(f"No embedding: {str(embedding)}")
 
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future1 = executor.submit(search_client, endpoint1,payload, headers1)
-            future2 = executor.submit(search_client, endpoint2,payload, headers2)
+    payload = {
+    "vector": embedding[0],
+    "limit": top_k,
+    "with_payload": True,
+    "filter": {"must": [{"key": "year",
+            "range": {"gte": start_year,
+                    "lte": end_year}
+               }]}
+    }
 
-        result1 = future1.result()
-        result2 = future2.result()
-        result1.extend(result2)
-        sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
-        logging.info(f"Total res: {str(len(sorted_res))}")
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        future1 = executor.submit(search_client, endpoint1,payload, headers1)
+        future2 = executor.submit(search_client, endpoint2,payload, headers2)
 
-        return render_template("index.html", results=sorted_res)
+    result1 = future1.result()
+    result2 = future2.result()
+    result1.extend(result2)
+    sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
+    logging.info(f"Total res: {str(len(sorted_res))}")
 
-
-    except Exception as e:
-        return render_template("index.html", error=str(e))
+    return render_template("index.html", results=sorted_res)
 
 
 if __name__ == "__main__":
