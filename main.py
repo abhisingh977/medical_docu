@@ -72,7 +72,7 @@ def search():
     input_text = request.form.get("text")
     start_year = int(request.form.get("start_year"))
     end_year = int(request.form.get("end_year"))
-    print(start_year, end_year)
+
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
