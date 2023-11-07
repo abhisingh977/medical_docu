@@ -5,12 +5,13 @@ import requests
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 import json
+import time
 import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.config['TIMEOUT'] = 5000
+app.config['TIMEOUT'] = 600
 
 embedding_url = os.environ["embedding_url"]
 
@@ -34,9 +35,31 @@ headers2 = {
 
 top_k = 10
 
-def search_client(endpoint,payload, headers):
-    logging.info(f"Making request to endpoint: str{endpoint}")
+def request_with_retry(retries=3, delay=1):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(retries):
+                try:
+                    response = func(*args, **kwargs)
+                    if response.status_code in (200, 201):  # Customize based on your requirements
+                        return response
+                except requests.RequestException as e:
+                    print(f"Request failed: {e}")
+                time.sleep(delay)
+            return None  # If all retries fail, return None or handle as needed
+        return wrapper
+    return decorator
+
+
+@request_with_retry
+def request_to_qrand(endpoint, data=json.dumps(payload), headers=headers,timeout=60):
     res = requests.post(endpoint, data=json.dumps(payload), headers=headers,timeout=500)
+    return res
+
+
+def search_client(endpoint, payload, headers):
+    logging.info(f"Making request to endpoint: str{endpoint}")
+    res = request_to_qrand(endpoint, data=json.dumps(payload), headers=headers,timeout=500)
     if res.status_code == 200:  # Assuming a successful response has status code 200
         res = res.json()  # Get the response data in JSON format
         res = res["result"]
@@ -67,9 +90,15 @@ def index():
 
     return render_template("index.html")
 
+
+@request_with_retry
+def request_to_sentence_embedding(embedding_url, input_data=input_data, timeout=200):
+    response = requests.post(embedding_url, json=input_data, timeout=timeout)
+    return response
+
+
 @app.route("/search", methods=["POST"])
 def search():
-
 # Get input text from the form
     input_text = request.form.get("text")
     start_year = int(request.form.get("start_year"))
@@ -80,15 +109,14 @@ def search():
     "input_text": chunks
     }
 
+    embedding_url = embedding_url+"/"+"get_embedding_from_input/"
     try:
-        response = requests.post(embedding_url+"/"+"get_embedding_from_input/", json=input_data)
-
+        response = request_to_sentence_embedding(embedding_url, input_data=input_data, timeout=200)
         if response.status_code == 200:
-            embedding = response.json()
-            
+            embedding = response.json()  
         else:
             logging.info(f"Request failed with status code {res.status_code}")
-            logging.info(res.text)  # Print the error message or details if the request fails
+            logging.info(response.text)  # Print the error message or details if the request fails
             logging.info(f"No embedding")
 
         payload = {
@@ -108,14 +136,28 @@ def search():
         result1 = future1.result()
         result2 = future2.result()
         result1.extend(result2)
-        
+
         sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
         logging.info(f"Total res: {str(len(sorted_res))}")
 
         return render_template("index.html", results=sorted_res)
 
     except Exception as e:
-        return render_template("index.html", error=str(e))
+        return '''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Server Limit Reached</title>
+        </head>
+        <body>
+            <h1>Server Limit Reached</h1>
+            <p>Apologies, the server cannot handle any more requests at the moment. Please refresh or try again later.
+                Thanks </p>
+        </body>
+        </html>
+    '''
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=os.getenv("PORT", 8080))
