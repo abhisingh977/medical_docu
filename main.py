@@ -51,7 +51,7 @@ def request_with_retry(retries=3, delay=1):
     return decorator
 
 
-@request_with_retry
+@request_with_retry()
 def request_to_qrand(endpoint, data, headers, timeout=60):
     res = requests.post(endpoint, data=json.dumps(data), headers=headers,timeout=timeout)
     return res
@@ -91,9 +91,9 @@ def index():
     return render_template("index.html")
 
 
-@request_with_retry
-def request_to_sentence_embedding(embedding_url, input_data=input_data, timeout=200):
-    response = requests.post(embedding_url, json=input_data, timeout=timeout)
+@request_with_retry()
+def request_to_sentence_embedding(embedding_url, input_data):
+    response = requests.post(embedding_url, json=input_data, timeout=500)
     return response
 
 
@@ -110,7 +110,7 @@ def search():
     }
 
     try:
-        response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data=input_data, timeout=200)
+        response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data)
         if response.status_code == 200:
             embedding = response.json()  
         else:
