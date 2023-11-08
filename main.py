@@ -114,7 +114,7 @@ def search():
         if response.status_code == 200:
             embedding = response.json()  
         else:
-            logging.info(f"Request failed with status code {res.status_code}")
+            logging.info(f"Request failed with status code {response.status_code}")
             logging.info(response.text)  # Print the error message or details if the request fails
             logging.info(f"No embedding")
 
