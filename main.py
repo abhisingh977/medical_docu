@@ -52,8 +52,8 @@ def request_with_retry(retries=3, delay=1):
 
 
 @request_with_retry
-def request_to_qrand(endpoint, data=json.dumps(payload), headers=headers,timeout=60):
-    res = requests.post(endpoint, data=json.dumps(payload), headers=headers,timeout=500)
+def request_to_qrand(endpoint, data=payload, headers=headers,timeout=60):
+    res = requests.post(endpoint, data=payload, headers=headers,timeout=500)
     return res
 
 
@@ -150,7 +150,7 @@ def search():
             <title>Server Limit Reached</title>
         </head>
         <body>
-            <h1>Server Limit Reached</h1>
+            <h1>Opps!! To many people using this page!!!!</h1>
             <p>Apologies, the server cannot handle any more requests at the moment. Please refresh or try again later.
                 Thanks </p>
         </body>
