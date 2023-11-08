@@ -52,14 +52,14 @@ def request_with_retry(retries=3, delay=1):
 
 
 @request_with_retry
-def request_to_qrand(endpoint, data=payload, headers=headers,timeout=60):
-    res = requests.post(endpoint, data=payload, headers=headers,timeout=500)
+def request_to_qrand(endpoint, data, headers, timeout=60):
+    res = requests.post(endpoint, data=json.dumps(data), headers=headers,timeout=timeout)
     return res
 
 
 def search_client(endpoint, payload, headers):
     logging.info(f"Making request to endpoint: str{endpoint}")
-    res = request_to_qrand(endpoint, data=json.dumps(payload), headers=headers,timeout=500)
+    res = request_to_qrand(endpoint=endpoint, data=payload, headers=headers,timeout=500)
     if res.status_code == 200:  # Assuming a successful response has status code 200
         res = res.json()  # Get the response data in JSON format
         res = res["result"]
@@ -109,9 +109,8 @@ def search():
     "input_text": chunks
     }
 
-    embedding_url = embedding_url+"/"+"get_embedding_from_input/"
     try:
-        response = request_to_sentence_embedding(embedding_url, input_data=input_data, timeout=200)
+        response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data=input_data, timeout=200)
         if response.status_code == 200:
             embedding = response.json()  
         else:
