@@ -5,7 +5,7 @@ import fitz
 import base64
 import re 
 
-dpi = 100
+dpi = 90
 
 mat = fitz.Matrix(dpi / 72, dpi / 72)
 highlight_color = (1, 1, 0)
