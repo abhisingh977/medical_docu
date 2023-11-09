@@ -1,85 +1,25 @@
-from flask import Flask, request, render_template
-import os
-from get_relevant_page import get_relevant_text
-import requests
+from flask import Flask, request, render_template, redirect, session, abort
+from google.oauth2 import id_token
+from constant import flow,top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2
+from pip._vendor import cachecontrol
 from threading import Thread
+import google.auth.transport.requests
+import os
+from fuction import request_to_sentence_embedding, search_client, login_is_required
+import requests
 from concurrent.futures import ThreadPoolExecutor
-import json
-import time
+from dotenv import load_dotenv
 import logging
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-app = Flask(__name__)
+load_dotenv('/home/abhishek/abhi/medical_docu/.env')
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
+app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
-
-embedding_url = os.environ["embedding_url"]
-
-url1 = os.environ["url1"]
-api_key1 = os.environ["api_key1"]
-collection_name1 = "data"
-endpoint1 = f'{url1}/collections/{collection_name1}/points/search'
-headers1 = {
-  'Content-Type': 'application/json',
-  'api-key': api_key1
-}
-
-url2 = os.environ["url2"]
-api_key2 = os.environ["api_key2"]
-collection_name2 = "anesthesia"
-endpoint2 = f'{url2}/collections/{collection_name2}/points/search'
-headers2 = {
-  'Content-Type': 'application/json',
-  'api-key': api_key2
-}
-
-top_k = 10
-
-def request_with_retry(retries=3, delay=1):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            for _ in range(retries):
-                try:
-                    response = func(*args, **kwargs)
-                    if response.status_code in (200, 201):  # Customize based on your requirements
-                        return response
-                except requests.RequestException as e:
-                    print(f"Request failed: {e}")
-                time.sleep(delay)
-            return None  # If all retries fail, return None or handle as needed
-        return wrapper
-    return decorator
-
-
-@request_with_retry()
-def request_to_qrand(endpoint, data, headers, timeout=60):
-    res = requests.post(endpoint, data=json.dumps(data), headers=headers,timeout=timeout)
-    return res
-
-
-def search_client(endpoint, payload, headers):
-    logging.info(f"Making request to endpoint: {endpoint}")
-    res = request_to_qrand(endpoint=endpoint, data=payload, headers=headers,timeout=500)
-    if res.status_code == 200:  # Assuming a successful response has status code 200
-        res = res.json()  # Get the response data in JSON format
-        res = res["result"]
-        res = sorted(res, key=lambda x: x['score'], reverse=True)
-        res = get_relevant_text(res)
-        logging.info(f"Successful return to request to endpoint: {endpoint}")
-    # Process the data as needed
-    else:
-        logging.info(f"Request failed with status code {res.status_code}")
-        logging.info(res.text)  # Print the error message or details if the request fails
-        logging.info(f"{endpoint} did not returned respose in time.")
-
-
-    return res
-
-def make_request(embedding_url):
-    try:
-        response = requests.get(embedding_url,timeout=1)
-    except:
-        pass
+app.secret_key = os.getenv('ClientSecret')
 
 @app.route("/")
 def index():
@@ -87,15 +27,50 @@ def index():
         Thread(target=make_request, args=(embedding_url,)).start()
     except:
         pass
-
     return render_template("index.html")
 
+@login_is_required
+@app.route("/authed_user")
+def authed_user():
+    return render_template("index.html")
 
-@request_with_retry()
-def request_to_sentence_embedding(embedding_url, input_data):
-    response = requests.post(embedding_url, json=input_data, timeout=500)
-    return response
+@app.route("/login")
+def login():
+    authorization_url, state = flow.authorization_url()
+    session["state"] = state
+    return redirect(authorization_url)
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return render_template("index.html")
+
+@app.route("/callback")
+def callback():
+    flow.fetch_token(authorization_response=request.url)
+
+    if not session["state"] == request.args["state"]:
+        abort(500)  # State does not match!
+
+    credentials = flow.credentials
+    request_session = requests.session()
+    cached_session = cachecontrol.CacheControl(request_session)
+    token_request = google.auth.transport.requests.Request(session=cached_session)
+
+    id_info = id_token.verify_oauth2_token(
+        id_token=credentials._id_token,
+        request=token_request,
+        audience=GOOGLE_CLIENT_ID
+    )
+    session["google_id"] = id_info.get("sub")
+    session["name"] = id_info.get("name")
+    return redirect("/authed_user")
+
+def make_request(embedding_url):
+    try:
+        response = requests.get(embedding_url,timeout=1)
+    except:
+        pass
 
 @app.route("/search", methods=["POST"])
 def search():
@@ -103,7 +78,6 @@ def search():
     input_text = request.form.get("text")
     start_year = int(request.form.get("start_year"))
     end_year = int(request.form.get("end_year"))
-
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
@@ -114,7 +88,7 @@ def search():
         if response.status_code == 200:
             embedding = response.json()  
         else:
-            logging.info(f"Request failed with status code {res.status_code}")
+            logging.info(f"Request failed with status code {response.status_code}")
             logging.info(response.text)  # Print the error message or details if the request fails
             logging.info(f"No embedding")
 

@@ -149,11 +149,25 @@
         .year-container label {
             margin-right: 10px;
         }
+
+        #oauth-google {
+            position: absolute;
+            top: 20px;
+            /* Adjust this value to position the image from the top */
+            right: 20px;
+            /* Adjust this value to position the image from the right */
+        }
     </style>
 
 </head>
 
 <body>
+    <div id="oauth-google">
+        <a href="{{ url_for('login') }}">
+            <img src="{{ url_for('static', filename='/images/google-logo.png') }}" width="55px" height="55px"
+                alt="Google logo">
+        </a>
+    </div>
     <div class="container">
         <h1>Medical Document Search</h1>
         <form action="/search" method="POST" id="search-form">
@@ -177,7 +191,8 @@
             <!-- Loading Animation -->
             <div id="loading-animation" class="loading-animation">
                 <div class="loading-spinner"></div>
-                While you wait, know that our AI is focused on providing you with meticulously curated results that
+                While you wait, know that our AI is focused on providing you with meticulously curated results
+                that
                 align with the expertise of a fellow medical professional.
             </div>
             <ul id="results-list">

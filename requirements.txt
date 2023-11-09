@@ -1,4 +1,6 @@
-flask
+flask==3.0.0
 gunicorn==19.5.0
 PyMuPDF==1.23.5
-requests
+requests==2.31.0
+google-auth-oauthlib==1.1.0
+python-dotenv
