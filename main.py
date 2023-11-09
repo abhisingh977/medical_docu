@@ -15,7 +15,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 load_dotenv('/home/abhishek/abhi/medical_docu/.env')
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
