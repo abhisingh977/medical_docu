@@ -1,31 +1,31 @@
 from flask import Flask, request, render_template, redirect, session, abort
 from google.oauth2 import id_token
-from constant import flow,top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2
+from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2
 from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
 import os
-from fuction import request_to_sentence_embedding, search_client, login_is_required
+from function import request_to_sentence_embedding, search_client, login_is_required, make_request
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from google.cloud import firestore
 from dotenv import load_dotenv
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-load_dotenv('/home/abhishek/abhi/medical_docu/.env')
-
+load_dotenv('.env')
+db = firestore.Client(project="medical-docu")
 app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
-app.secret_key = os.getenv('ClientSecret')
+app.secret_key = os.environ.get('ClientSecret')
 
 @app.route("/")
 def index():
-    # try:
-    #     Thread(target=make_request, args=(embedding_url,)).start()
-    # except:
-    #     pass
+    try:
+        Thread(target=make_request, args=(embedding_url,)).start()
+    except:
+        pass
     return render_template("index.html")
 
 @login_is_required
@@ -46,7 +46,12 @@ def logout():
 
 @app.route("/callback")
 def callback():
-    flow.fetch_token(authorization_response=request.url)
+
+    logging.info("URL")
+    logging.info(request.url)
+    https_authorization_url = request.url.replace('http://', 'https://')
+
+    flow.fetch_token(authorization_response=https_authorization_url)
 
     if not session["state"] == request.args["state"]:
         abort(500)  # State does not match!
@@ -61,20 +66,25 @@ def callback():
         request=token_request,
         audience=GOOGLE_CLIENT_ID
     )
-    # print(id_info)
+
     session["google_id"] = id_info.get("sub")
     session["given_name"] = id_info.get("given_name")
     session["family_name"] = id_info.get("family_name")
     session["email"] = id_info.get("email")
     session["locale"] = id_info.get("locale")
-    print(session)
+
+    doc_ref = db.collection("users").document(id_info.get("sub"))
+    doc = doc_ref.get()
+    if doc.exists:
+        field_value = doc.get("count")
+        doc_ref.update({"count": field_value+1})
+    else:
+        doc_ref.set({"given_name": id_info.get("given_name"), "family_name": id_info.get("family_name"),
+        "email": id_info.get("email"), "locale":id_info.get("locale"),"picture": id_info.get("picture"), "count":1 })
+
     return redirect("/authed_user")
 
-def make_request(embedding_url):
-    try:
-        response = requests.get(embedding_url,timeout=1)
-    except:
-        pass
+
 
 @app.route("/search", methods=["POST"])
 def search():
