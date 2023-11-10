@@ -8,7 +8,12 @@ from constant import PaLM_url
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-
+def make_request(embedding_url):
+    try:
+        response = requests.get(embedding_url,timeout=1)
+    except:
+        pass
+        
 def login_is_required(function):
     def wrapper(*args, **kwargs):
         if "google_id" not in session:

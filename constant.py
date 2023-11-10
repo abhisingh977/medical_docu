@@ -3,31 +3,32 @@ from flask import Flask
 import os
 from google_auth_oauthlib.flow import Flow
 
+load_dotenv('.env')
 
-
-load_dotenv('/home/abhishek/abhi/medical_docu/.env')
-
-GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
-client_secrets_file = os.getenv('ClientSecretsFile')
-
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+client_secrets_file = os.environ.get('ClientSecretsFile')
 
 flow = Flow.from_client_secrets_file(
     client_secrets_file=client_secrets_file,
     scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"],
-    redirect_uri=os.getenv('redirect_uris')
+    redirect_uri=os.environ.get('redirect_uris')
 )
-url1 = os.getenv('url1')
-api_key1 = os.getenv('api_key1')
-collection_name1 = os.getenv('collection_name1')
+url1 = os.environ.get('url1')
+api_key1 = os.environ.get('api_key1')
+collection_name1 = os.environ.get('collection_name1')
 
-url2 = os.getenv('url2')
-api_key2 = os.getenv('api_key2')
-collection_name2 = os.getenv('collection_name2')
+url2 = os.environ.get('url2')
+api_key2 = os.environ.get('api_key2')
+collection_name2 = os.environ.get('collection_name2')
 
+<<<<<<< HEAD
 PaLM_API_KEY= os.getenv('PaLM_API_KEY')
 PaLM_url = os.getenv('PaLM_url')
 
 embedding_url = os.getenv('embedding_url')
+=======
+embedding_url = os.environ.get('embedding_url')
+>>>>>>> dacbb40 (login working in prod)
 top_k = 10
 
 endpoint2 = f'{url2}/collections/{collection_name2}/points/search'
