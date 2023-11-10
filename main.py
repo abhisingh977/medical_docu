@@ -13,7 +13,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 load_dotenv('/home/abhishek/abhi/medical_docu/.env')
 
 app = Flask("medical-docu")
@@ -22,10 +22,10 @@ app.secret_key = os.getenv('ClientSecret')
 
 @app.route("/")
 def index():
-    try:
-        Thread(target=make_request, args=(embedding_url,)).start()
-    except:
-        pass
+    # try:
+    #     Thread(target=make_request, args=(embedding_url,)).start()
+    # except:
+    #     pass
     return render_template("index.html")
 
 @login_is_required
@@ -61,8 +61,13 @@ def callback():
         request=token_request,
         audience=GOOGLE_CLIENT_ID
     )
+    # print(id_info)
     session["google_id"] = id_info.get("sub")
-    session["name"] = id_info.get("name")
+    session["given_name"] = id_info.get("given_name")
+    session["family_name"] = id_info.get("family_name")
+    session["email"] = id_info.get("email")
+    session["locale"] = id_info.get("locale")
+    print(session)
     return redirect("/authed_user")
 
 def make_request(embedding_url):
@@ -132,4 +137,4 @@ def search():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=os.getenv("PORT", 8080))
+    app.run(debug=True,host="0.0.0.0", port=os.getenv("PORT", 8080))
