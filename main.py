@@ -5,11 +5,7 @@ from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
 import os
-<<<<<<< HEAD
-from fuction import get_llm_response, request_to_sentence_embedding, search_client, login_is_required
-=======
-from function import request_to_sentence_embedding, search_client, login_is_required, make_request
->>>>>>> dacbb40 (login working in prod)
+from function import request_to_sentence_embedding, search_client, login_is_required, make_request, get_llm_response
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from google.cloud import firestore
