@@ -24,6 +24,9 @@ url2 = os.getenv('url2')
 api_key2 = os.getenv('api_key2')
 collection_name2 = os.getenv('collection_name2')
 
+PaLM_API_KEY= os.getenv('PaLM_API_KEY')
+PaLM_url = os.getenv('PaLM_url')
+
 embedding_url = os.getenv('embedding_url')
 top_k = 10
 

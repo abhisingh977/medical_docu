@@ -5,7 +5,7 @@ from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
 import os
-from fuction import request_to_sentence_embedding, search_client, login_is_required
+from fuction import get_llm_response, request_to_sentence_embedding, search_client, login_is_required
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
@@ -71,10 +71,13 @@ def make_request(embedding_url):
     except:
         pass
 
+
+
 @app.route("/search", methods=["POST"])
 def search():
 # Get input text from the form
     input_text = request.form.get("text")
+    llm_res = get_llm_response(input_text)
     start_year = int(request.form.get("start_year"))
     end_year = int(request.form.get("end_year"))
     chunks = input_text.lower()
@@ -112,7 +115,7 @@ def search():
         sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
         logging.info(f"Total res: {str(len(sorted_res))}")
 
-        return render_template("index.html", results=sorted_res)
+        return render_template("index.html", results=sorted_res, results_text=llm_res)
 
     except Exception as e:
         return '''
@@ -132,4 +135,4 @@ def search():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=os.getenv("PORT", 8080))
+    app.run(debug=True,host="0.0.0.0", port=os.getenv("PORT", 8080))
