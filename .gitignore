@@ -1,8 +1,9 @@
 logs/
 temp/
-
 *.log
 *.tmp
 .env
 client_secret.json
 __pycache__/
+medical-docu-dec5db602577.json
+test.py
