@@ -11,6 +11,7 @@ COPY constant.py /app/constant.py
 COPY client_secret.json /app/client_secret.json
 COPY medical-docu-dec5db602577.json /app/medical-docu-dec5db602577.json
 COPY static/images/google-logo.png /app/static/images/google-logo.png
+COPY static/ /app/static/
 # Sets the working directory
 WORKDIR /app
 
