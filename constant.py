@@ -26,6 +26,7 @@ PaLM_url = os.getenv('PaLM_url')
 
 embedding_url = os.getenv('embedding_url')
 
+
 top_k = 10
 
 endpoint2 = f'{url2}/collections/{collection_name2}/points/search'
