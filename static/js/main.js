@@ -40,7 +40,6 @@ function sendRequests() {
     // Make a request to API 1 with user input
     $.get('/llm', { input: userInput }, function (api1Data) {
         // Display API 1 response to the user
-        $('#loadingIndicator').hide();
 
         $('#llmResponse').text(api1Data.data);
         toggleResultsBox1(api1Data.data)
@@ -48,6 +47,7 @@ function sendRequests() {
 
     // Make a request to API 2 with user input
     $.get('/search', { input: userInput, sy: strat_year, ey: end_year }, function (api2Data) {
+        $('#loadingIndicator').hide();
 
         displayApi2Results(api2Data);
         toggleResultsBox2(api2Data.data);
