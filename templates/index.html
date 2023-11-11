@@ -26,58 +26,35 @@
 </head>
 
 <body>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
     <div id="oauth-google">
         <a href="{{ url_for('login') }}">
             <img src="{{ url_for('static', filename='/images/google-logo.png') }}" width="55px" height="55px"
                 alt="Google logo">
         </a>
     </div>
+
     <div class="container">
+
+
         <h1>Medical Document Search</h1>
-        <form action="/search" method="POST" id="search-form">
+        <label for="userInput">Enter Text:</label>
+        <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
+            value="{{ request.form['text'] }}">
+        <br>
+        <div class="year-container">
+            <b><label for="filter">Filter:</label></b>
+            <b><label for="start-year">Start Year:</label></b>
+            <select id="start-year" name="start_year"></select>
+            <b> <label for="end-year">&nbsp &nbsp End Year:</label></b>
+            <select id="end-year" name="end_year"></select>
+        </div> <br>
+        <button type="submit" id="click" onclick="sendRequests()">Search</button>
+        <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 20px;">Processing...</div>
+        <div class="results-box" id="llmResponse"> </div>
+        <div class="results-box" id="searchResponse"></div>
 
-            <input type="text" id="search-query" name="text" placeholder="Enter your search here..."
-                value="{{ request.form['text'] }}">
-            <br>
-
-            <div class="year-container">
-                <b><label for="filter">Filter:</label></b>
-                <b><label for="start-year">Start Year:</label></b>
-                <select id="start-year" name="start_year"></select>
-                <b> <label for="end-year">&nbsp &nbsp End Year:</label></b>
-                <select id="end-year" name="end_year"></select>
-            </div> <br>
-            <button type="submit">Search</button>
-        </form>
-        <ul id="results-list-2">
-            <li>
-                {{ results_text }}
-            </li>
-
-        </ul>
-
-        <div class="results-box">
-            <h2>Search Results</h2>
-
-            <ul id="results-list">
-                {% if results %}
-                {% for result in results %}
-                <li>
-                    <b>Relevant text: {{ result.text }}</b> <br>
-                    <b>Page No: {{ result.page_no }}</b> <br>
-                    <b>Name: {{ result.name }}</b> <br>
-                    <b>Year of Publication: {{ result.year }}</b> <br>
-                </li>
-                <div class="image-container">
-                    <img src="data:image/jpeg;base64, {{ result.pdf_image }}" alt="Relevant Page">
-                </div>
-                <br>
-                <a href="{{ result.pdf_link }}" target="_blank">Continue with this PDF </a> <br> <br>
-                <br> <br> <br>
-                {% endfor %}
-                {% endif %}
-            </ul>
-        </div>
     </div>
     <script src="/static/js/main.js"></script>
 </body>

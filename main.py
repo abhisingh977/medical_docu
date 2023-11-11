@@ -1,10 +1,12 @@
-from flask import Flask, request, render_template, redirect, session, abort
+from flask import Flask, request,jsonify, render_template, redirect, session, abort, stream_with_context
 from google.oauth2 import id_token
 from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2
 from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
 import os
+import json
+import numpy as np
 from function import request_to_sentence_embedding, search_client, login_is_required, make_request, get_llm_response
 import requests
 from concurrent.futures import ThreadPoolExecutor
@@ -22,11 +24,12 @@ app.secret_key = os.environ.get('ClientSecret')
 
 @app.route("/")
 def index():
-    try:
-        Thread(target=make_request, args=(embedding_url,)).start()
-    except:
-        pass
+    # try:
+    #     Thread(target=make_request, args=(embedding_url,)).start()
+    # except:
+    #     pass
     return render_template("index.html")
+
 
 @login_is_required
 @app.route("/authed_user")
@@ -85,67 +88,63 @@ def callback():
     return redirect("/authed_user")
 
 
+@app.route('/llm')
+def api1():
+    # Access user input from the request
+    user_input = request.args.get('input')
+    llm_res = get_llm_response(user_input)
+    # Call API 1 with user input and return the response
+    # Replace the following line with your API 1 call
+    api1_response = {"data": f"{llm_res}"}
+    return jsonify(api1_response)
 
-
-
-@app.route("/search", methods=["POST"])
-def search():
-# Get input text from the form
-    input_text = request.form.get("text")
-    llm_res = get_llm_response(input_text)
-    start_year = int(request.form.get("start_year"))
-    end_year = int(request.form.get("end_year"))
+@app.route('/search')
+def api2():
+    # Access user input from the request
+    input_text = request.args.get('input')
+    start_year = int(request.args.get('sy'))
+    end_year = int(request.args.get('ey'))
+    print(start_year, end_year)
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
     }
 
-    try:
-        response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data)
-        if response.status_code == 200:
-            embedding = response.json()  
-        else:
-            logging.info(f"Request failed with status code {response.status_code}")
-            logging.info(response.text)  # Print the error message or details if the request fails
-            logging.info(f"No embedding")
 
-        payload = {
-        "vector": embedding[0],
-        "limit": top_k,
-        "with_payload": True,
-        "filter": {"must": [{"key": "year",
-                "range": {"gte": start_year,
-                        "lte": end_year}
-                }]}
-        }
+    # response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data)
+    # if response.status_code == 200:
+    #     embedding = response.json()  
+    # else:
+    #     logging.info(f"Request failed with status code {response.status_code}")
+    #     logging.info(response.text)  # Print the error message or details if the request fails
+    #     logging.info(f"No embedding")
+    embedding = [np.array(np.zeros(384)).tolist()]
+    payload = {
+    "vector": embedding[0],
+    "limit": 5,
+    "with_payload": True,
+    "filter": {"must": [{"key": "year",
+            "range": {"gte": start_year,
+                    "lte": end_year}
+            }]}
+    }
 
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future1 = executor.submit(search_client, endpoint1, payload, headers1)
-            future2 = executor.submit(search_client, endpoint2, payload, headers2)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        future1 = executor.submit(search_client, endpoint1, payload, headers1)
+        future2 = executor.submit(search_client, endpoint2, payload, headers2)
 
-        result1 = future1.result()
-        result2 = future2.result()
-        result1.extend(result2)
-
-        sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
-        logging.info(f"Total res: {str(len(sorted_res))}")
-
-        return render_template("index.html", results=sorted_res, results_text=llm_res)
-
-    except Exception as e:
-        return '''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Server Limit Reached</title>
-        </head>
-        <body>
-            <h1>Opps!! To many people using this page!!!!</h1>
-            <p>Apologies, the server cannot handle any more requests at the moment. Please refresh or try again later.
-                Thanks </p>
-        </body>
-        </html>
-    '''
+    result1 = future1.result()
+    result2 = future2.result()
+    result1.extend(result2)
+    
+    sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
+    logging.info(f"Total res: {str(len(sorted_res))}")
+    
+    # Call API 2 with user input and return the response
+    # Replace the following line with your API 2 call
+    api2_response = {"data": f"{json.dumps(sorted_res)}"}
+    # print(api2_response)
+    return jsonify(api2_response)
 
 
 

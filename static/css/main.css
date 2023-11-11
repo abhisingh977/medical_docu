@@ -51,6 +51,7 @@ button:hover {
 }
 
 .results-box {
+    display: none;
     background-color: #f4f4f4;
     border: 1px solid #ccc;
     border-radius: 5px;
