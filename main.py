@@ -1,4 +1,4 @@
-from flask import Flask, request,jsonify, render_template, redirect, session, abort, stream_with_context
+from flask import Flask, request,jsonify, render_template, redirect, session, abort
 from google.oauth2 import id_token
 from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2
 from pip._vendor import cachecontrol
@@ -24,10 +24,10 @@ app.secret_key = os.environ.get('ClientSecret')
 
 @app.route("/")
 def index():
-    # try:
-    #     Thread(target=make_request, args=(embedding_url,)).start()
-    # except:
-    #     pass
+    try:
+        Thread(target=make_request, args=(embedding_url,)).start()
+    except:
+        pass
     return render_template("index.html")
 
 
@@ -104,48 +104,49 @@ def api2():
     input_text = request.args.get('input')
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
-    print(start_year, end_year)
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
     }
 
+    try:
+        response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data)
+        if response.status_code == 200:
+            embedding = response.json()  
+        else:
+            logging.info(f"Request failed with status code {response.status_code}")
+            logging.info(response.text)  # Print the error message or details if the request fails
+            logging.info(f"No embedding")
 
-    # response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data)
-    # if response.status_code == 200:
-    #     embedding = response.json()  
-    # else:
-    #     logging.info(f"Request failed with status code {response.status_code}")
-    #     logging.info(response.text)  # Print the error message or details if the request fails
-    #     logging.info(f"No embedding")
-    embedding = [np.array(np.zeros(384)).tolist()]
-    payload = {
-    "vector": embedding[0],
-    "limit": 5,
-    "with_payload": True,
-    "filter": {"must": [{"key": "year",
-            "range": {"gte": start_year,
-                    "lte": end_year}
-            }]}
-    }
+        payload = {
+        "vector": embedding[0],
+        "limit": top_k,
+        "with_payload": True,
+        "filter": {"must": [{"key": "year",
+                "range": {"gte": start_year,
+                        "lte": end_year}
+                }]}
+        }
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        future1 = executor.submit(search_client, endpoint1, payload, headers1)
-        future2 = executor.submit(search_client, endpoint2, payload, headers2)
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future1 = executor.submit(search_client, endpoint1, payload, headers1)
+            future2 = executor.submit(search_client, endpoint2, payload, headers2)
 
-    result1 = future1.result()
-    result2 = future2.result()
-    result1.extend(result2)
-    
-    sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
-    logging.info(f"Total res: {str(len(sorted_res))}")
-    
-    # Call API 2 with user input and return the response
-    # Replace the following line with your API 2 call
-    api2_response = {"data": f"{json.dumps(sorted_res)}"}
-    # print(api2_response)
-    return jsonify(api2_response)
+        result1 = future1.result()
+        result2 = future2.result()
+        result1.extend(result2)
+        
+        sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
+        logging.info(f"Total res: {str(len(sorted_res))}")
+        
+        # Call API 2 with user input and return the response
+        # Replace the following line with your API 2 call
+        api2_response = {"data": f"{json.dumps(sorted_res)}"}
 
+        return jsonify(api2_response)
+
+    except Exception as e:
+        return render_template("server_limit.html")
 
 
 if __name__ == "__main__":
