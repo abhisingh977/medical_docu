@@ -1,11 +1,13 @@
-from flask import Flask, request, render_template, redirect, session, abort
+from flask import Flask, request,jsonify, render_template, redirect, session, abort
 from google.oauth2 import id_token
 from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2
 from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
 import os
-from function import request_to_sentence_embedding, search_client, login_is_required, make_request
+import json
+import numpy as np
+from function import request_to_sentence_embedding, search_client, login_is_required, make_request, get_llm_response
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from google.cloud import firestore
@@ -27,6 +29,7 @@ def index():
     except:
         pass
     return render_template("index.html")
+
 
 @login_is_required
 @app.route("/authed_user")
@@ -85,13 +88,22 @@ def callback():
     return redirect("/authed_user")
 
 
+@app.route('/llm')
+def api1():
+    # Access user input from the request
+    user_input = request.args.get('input')
+    llm_res = get_llm_response(user_input)
+    # Call API 1 with user input and return the response
+    # Replace the following line with your API 1 call
+    api1_response = {"data": f"{llm_res}"}
+    return jsonify(api1_response)
 
-@app.route("/search", methods=["POST"])
-def search():
-# Get input text from the form
-    input_text = request.form.get("text")
-    start_year = int(request.form.get("start_year"))
-    end_year = int(request.form.get("end_year"))
+@app.route('/search')
+def api2():
+    # Access user input from the request
+    input_text = request.args.get('input')
+    start_year = int(request.args.get('sy'))
+    end_year = int(request.args.get('ey'))
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
@@ -123,27 +135,18 @@ def search():
         result1 = future1.result()
         result2 = future2.result()
         result1.extend(result2)
-
+        
         sorted_res = sorted(result1, key=lambda x: x['score'], reverse=True)
         logging.info(f"Total res: {str(len(sorted_res))}")
+        
+        # Call API 2 with user input and return the response
+        # Replace the following line with your API 2 call
+        api2_response = {"data": f"{json.dumps(sorted_res)}"}
 
-        return render_template("index.html", results=sorted_res)
+        return jsonify(api2_response)
 
     except Exception as e:
-        return '''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Server Limit Reached</title>
-        </head>
-        <body>
-            <h1>Opps!! To many people using this page!!!!</h1>
-            <p>Apologies, the server cannot handle any more requests at the moment. Please refresh or try again later.
-                Thanks </p>
-        </body>
-        </html>
-    '''
-
+        return render_template("server_limit.html")
 
 
 if __name__ == "__main__":

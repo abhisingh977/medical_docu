@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-from flask import Flask
 import os
 from google_auth_oauthlib.flow import Flow
 
@@ -21,7 +20,13 @@ url2 = os.environ.get('url2')
 api_key2 = os.environ.get('api_key2')
 collection_name2 = os.environ.get('collection_name2')
 
-embedding_url = os.environ.get('embedding_url')
+
+PaLM_API_KEY= os.getenv('PaLM_API_KEY')
+PaLM_url = os.getenv('PaLM_url')
+
+embedding_url = os.getenv('embedding_url')
+
+
 top_k = 10
 
 endpoint2 = f'{url2}/collections/{collection_name2}/points/search'
