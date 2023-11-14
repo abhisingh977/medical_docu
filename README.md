@@ -10,6 +10,7 @@ While google or chatgpt scrape data is available everywhere on web. Medical docu
 ## Why is this not already available:
 One of the the biggest problems collecting medical information is that they are not avialable on web in form on blogs and articles. They are present in form of pdf(mostly) or ppt files.
 
+
 ## Problem:
 Reading pdfs are hard to read for computer it does not have fix layout which makes it a really hard problem to get the clean information from pdf files especially when images and tabular data is involved.
 There are several libraries that try to solve this problem such as "PyPDF2", "pdfminer", "unstructured", "layout-parser" but none of them as good as needed for the task.
@@ -21,6 +22,7 @@ The computer vision model has to learn to understant to contextual information a
 
 ### Real User Metrics:
 Before you move forward i would like to share this metric dashboard to you. This is the real metrics of my project:
+![alt text](img/summary.png?raw=true)
 ![alt text](img/analytics_dashboard.png?raw=true)
 
 Current work and implementation:
