@@ -21,7 +21,7 @@ The computer vision model has to learn to understant to contextual information a
 
 ### Real User Metrics:
 Before you move forward i would like to share this metric dashboard to you. This is the real metrics of my project:
-![alt text](img/analytics dashboard.png?raw=true)
+![alt text](img/analytics_dashboard.png?raw=true)
 
 Current work and implementation:
 ### 1. Data collection and scrapping:
