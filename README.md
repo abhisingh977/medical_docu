@@ -44,7 +44,7 @@ The flask code is in main.py file.
 ### Result after search results
 ![alt text](img/results.png?raw=true)
 
-### Current System Desgin:
+### Current System Design:
 ![alt text](img/system.png?raw=true)
 
 
