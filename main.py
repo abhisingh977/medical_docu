@@ -27,10 +27,10 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.environ.get('GOOGLE_APPLICATION
 
 @app.route("/")
 def index():
-    try:
-        Thread(target=make_request, args=(embedding_url,)).start()
-    except:
-        pass
+    # try:
+    #     Thread(target=make_request, args=(embedding_url,)).start()
+    # except:
+    #     pass
     return render_template("index.html")
 
 
@@ -108,6 +108,9 @@ def api2():
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
     chunks = input_text.lower()
+    books = json.loads(request.args.get("books"))
+    print("books")
+    print(books, input_text,start_year )
     input_data = {
     "input_text": chunks
     }
@@ -179,6 +182,10 @@ def save_chunk(chunk):
 @app.route('/upload')
 def upload():
     return render_template('upload.html')
+
+@app.route('/books')
+def books():
+    return render_template('books.html')
 
 if __name__ == "__main__":
     app.run(debug=True,host="0.0.0.0", port=os.getenv("PORT", 8080))

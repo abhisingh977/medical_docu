@@ -36,7 +36,11 @@ function sendRequests() {
     var end_year = $('#end-year').val();
     // Display or hide results-box based on the content
     // Show loading message or spinner
-
+    var checkboxValues = sessionStorage.getItem('checkboxValues');
+    if (checkboxValues) {
+        checkboxValues = JSON.parse(checkboxValues);
+        console.log('Checkbox Values:', checkboxValues);
+    }
     // Make a request to API 1 with user input
     $.get('/llm', { input: userInput }, function (api1Data) {
         // Display API 1 response to the user
@@ -46,7 +50,7 @@ function sendRequests() {
     });
 
     // Make a request to API 2 with user input
-    $.get('/search', { input: userInput, sy: strat_year, ey: end_year }, function (api2Data) {
+    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, books: JSON.stringify(checkboxValues) }, function (api2Data) {
         $('#loadingIndicator').hide();
 
         displayApi2Results(api2Data);

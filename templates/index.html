@@ -26,6 +26,18 @@
 </head>
 
 <body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var checkboxValues = sessionStorage.getItem('checkboxValues');
+
+            if (checkboxValues) {
+                checkboxValues = JSON.parse(checkboxValues);
+
+                // Log or use checkboxValues as needed
+                console.log('Checkbox Values:', checkboxValues);
+            }
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
     <div id="oauth-google">
@@ -38,7 +50,8 @@
     <div class="container">
 
         <a href="{{ url_for('upload') }}"
-            style="display: inline-block; padding: 7px 14px; background-color: #1a80fce8; color: #fff; text-decoration: none; border-radius: 5px;">Upload File</a>
+            style="display: inline-block; padding: 7px 14px; background-color: #1a80fce8; color: #fff; text-decoration: none; border-radius: 5px;">Upload
+            File</a>
 
         <h1>Medical Document Search</h1>
         <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
@@ -51,6 +64,9 @@
             <b> <label for="end-year">&nbsp &nbsp End Year:</label></b>
             <select id="end-year" name="end_year"></select>
         </div> <br>
+        <a href="{{ url_for('books') }}"
+        style="display: inline-block; padding: 7px 14px; background-color: #1a80fce8; color: #fff; text-decoration: none; border-radius: 5px;">Filter
+        Books</a>
         <button type="submit" id="click" onclick="sendRequests()">Search</button>
 
         <div class="results-box" id="llmResponse"> </div>

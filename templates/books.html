@@ -1,0 +1,28 @@
+<!-- Page 1: Collect checkbox information -->
+<label>
+    <input type="checkbox" name="a" class="checkbox"> Checkbox A
+</label>
+<label>
+    <input type="checkbox" name="b" class="checkbox"> Checkbox B
+</label>
+<!-- Add other checkboxes for fields c, d, g, y, u, i as needed -->
+
+<button type="button" onclick="saveCheckboxInfo()">Save Checkbox Info</button>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<!-- Your script follows here -->
+<script>
+    function saveCheckboxInfo() {
+        var checkboxValues = [];
+        $('.checkbox:checked').each(function () {
+            checkboxValues.push($(this).attr('name'));
+        });
+
+        // Store checkbox values in sessionStorage
+        sessionStorage.setItem('checkboxValues', JSON.stringify(checkboxValues));
+
+        // Redirect to the page where you want to use the checkboxes
+        window.location.href = '/';
+    }
+</script>
