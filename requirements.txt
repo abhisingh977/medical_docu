@@ -5,3 +5,4 @@ requests==2.31.0
 google-auth-oauthlib==1.1.0
 python-dotenv
 google-cloud-firestore
+google-cloud-storage

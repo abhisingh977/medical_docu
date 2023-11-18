@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Document</title>
+    <!-- Add any necessary stylesheets or scripts for the upload page -->
+</head>
+
+<body>
+    <div class="container">
+        <h1>Upload Document</h1>
+
+        <form method="POST" action="{{ url_for('upload_chunk') }}" enctype="multipart/form-data">
+            <label for="document">Upload PDF Document:</label>
+            <input type="file" id="document" name="document" accept=".pdf">
+            <button type="submit">Upload</button>
+        </form>
+
+        <!-- Add any additional content for the upload page -->
+
+    </div>
+</body>
+
+</html>
