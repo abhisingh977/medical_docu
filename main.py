@@ -107,6 +107,14 @@ def api2():
     input_text = request.args.get('input')
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
+
+    # Parse options parameter into a list
+    options = request.args.get('options')
+    if options:
+        options_list = options.split(',')
+    else:
+        options_list = []
+
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
@@ -120,16 +128,32 @@ def api2():
             logging.info(f"Request failed with status code {response.status_code}")
             logging.info(response.text)  # Print the error message or details if the request fails
             logging.info(f"No embedding")
+        if len(options_list) != 0: 
+            payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {"must": [{"key": "year",
+                    "range": {"gte": start_year,
+                            "lte": end_year}
+                    },{
+                    "key": "book_name",
+                    "match": {
+                        "any": options_list
+                    }
+                    }]}
+            }
+        else:
+            payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {"must": [{"key": "year",
+                    "range": {"gte": start_year,
+                            "lte": end_year}
+                    }]}
+            }
 
-        payload = {
-        "vector": embedding[0],
-        "limit": top_k,
-        "with_payload": True,
-        "filter": {"must": [{"key": "year",
-                "range": {"gte": start_year,
-                        "lte": end_year}
-                }]}
-        }
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             future1 = executor.submit(search_client, endpoint1, payload, headers1)

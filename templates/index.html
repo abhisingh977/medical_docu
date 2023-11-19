@@ -23,6 +23,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Document Search</title>
     <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+
 </head>
 
 <body>
@@ -37,20 +38,21 @@
 
     <div class="container">
 
-        <a href="{{ url_for('upload') }}"
-            style="display: inline-block; padding: 7px 14px; background-color: #1a80fce8; color: #fff; text-decoration: none; border-radius: 5px;">Upload File</a>
+        <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
 
-        <h1>Medical Document Search</h1>
+        <h1 id="header">Medical Document Search</h1>
         <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
             value="{{ request.form['text'] }}">
         <br>
-        <div class="year-container">
-            <b><label for="filter">Filter:</label></b>
-            <b><label for="start-year">Start Year:</label></b>
-            <select id="start-year" name="start_year"></select>
-            <b> <label for="end-year">&nbsp &nbsp End Year:</label></b>
-            <select id="end-year" name="end_year"></select>
-        </div> <br>
+
+        <!-- Filter button -->
+        <button id="filter-btn"> Add Filters</button>
+        <br><br>
+        <!-- Filter options container -->
+
+        <div class="filter-container">
+            {% include 'filter.html' %}
+        </div>
         <button type="submit" id="click" onclick="sendRequests()">Search</button>
 
         <div class="results-box" id="llmResponse"> </div>
@@ -60,7 +62,6 @@
 
     </div>
     <script src="/static/js/main.js"></script>
-
 </body>
 
 </html>

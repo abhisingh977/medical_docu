@@ -25,8 +25,29 @@ document.getElementById("click").addEventListener("click", function (event) {
     }
 });
 
+// Global variable to store selected options
+var selectedOptions = [];
 
+// Apply button click event using jQuery
+$('#apply-btn').on('click', function () {
+    console.log('Apply button clicked');
+    // Get selected checkbox values
+    selectedOptions = $('input[type=checkbox]:checked').map(function () {
+        console.log(this.id);
+        return this.id;
+    }).get();
 
+    // You can display a message or update the UI to show that options are applied
+    console.log("Options applied:", selectedOptions);
+
+    // Hide the filter options
+    $('#filter-options').hide();
+});
+
+// JavaScript to toggle the visibility of the filter options using jQuery
+$('#filter-btn').on('click', function () {
+    $('#filter-options').toggle();
+});
 
 function sendRequests() {
     // Get user input
@@ -34,6 +55,12 @@ function sendRequests() {
     var userInput = $('#userInput').val();
     var strat_year = $('#start-year').val();
     var end_year = $('#end-year').val();
+
+
+
+    // Display or hide results-box based on the content
+    // Show loading message or spinner
+
     // Display or hide results-box based on the content
     // Show loading message or spinner
 
@@ -46,7 +73,7 @@ function sendRequests() {
     });
 
     // Make a request to API 2 with user input
-    $.get('/search', { input: userInput, sy: strat_year, ey: end_year }, function (api2Data) {
+    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function (api2Data) {
         $('#loadingIndicator').hide();
 
         displayApi2Results(api2Data);
