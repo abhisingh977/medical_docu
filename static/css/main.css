@@ -122,10 +122,10 @@ li {
     background-color: #007bff;
     color: #fff;
     position: relative;
-    top: 5%;
-    left: 0.00001%;
+    top: 20px;
+    left: 10px;
     border: none;
-    padding: 1.5% 1%;
+    padding: 10px 10px;
     border-radius: 5px;
     cursor: pointer;
     text-decoration: none;
