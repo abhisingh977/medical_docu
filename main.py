@@ -27,10 +27,10 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.environ.get('GOOGLE_APPLICATION
 
 @app.route("/")
 def index():
-    # try:
-    #     Thread(target=make_request, args=(embedding_url,)).start()
-    # except:
-    #     pass
+    try:
+        Thread(target=make_request, args=(embedding_url,)).start()
+    except:
+        pass
     return render_template("index.html")
 
 
@@ -107,11 +107,6 @@ def api2():
     input_text = request.args.get('input')
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
-    print("start_year")
-    print(start_year)
-    print("end_year")
-    print(end_year)
-
 
     # Parse options parameter into a list
     options = request.args.get('options')
@@ -120,8 +115,6 @@ def api2():
     else:
         options_list = []
 
-    print("Options:")
-    print(options_list)
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
@@ -135,21 +128,32 @@ def api2():
             logging.info(f"Request failed with status code {response.status_code}")
             logging.info(response.text)  # Print the error message or details if the request fails
             logging.info(f"No embedding")
+        if len(options_list) != 0: 
+            payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {"must": [{"key": "year",
+                    "range": {"gte": start_year,
+                            "lte": end_year}
+                    },{
+                    "key": "book_name",
+                    "match": {
+                        "any": options_list
+                    }
+                    }]}
+            }
+        else:
+            payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {"must": [{"key": "year",
+                    "range": {"gte": start_year,
+                            "lte": end_year}
+                    }]}
+            }
 
-        payload = {
-        "vector": embedding[0],
-        "limit": top_k,
-        "with_payload": True,
-        "filter": {"must": [{"key": "year",
-                "range": {"gte": start_year,
-                        "lte": end_year}
-                },{
-                "key": "book_name",
-                "match": {
-                    "any": ["Miller's Anesthesia "]
-                }
-                }]}
-        }
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             future1 = executor.submit(search_client, endpoint1, payload, headers1)

@@ -20,6 +20,11 @@ body {
     /* Full viewport height */
 }
 
+.filter-container {
+    background-color: #fff;
+
+}
+
 h1 {
     text-align: center;
 }
@@ -116,9 +121,26 @@ li {
 #upload_but {
     background-color: #007bff;
     color: #fff;
+    position: relative;
+    top: 5%;
+    left: 0.00001%;
     border: none;
-    padding: 10px 20px;
+    padding: 1.5% 1%;
     border-radius: 5px;
     cursor: pointer;
     text-decoration: none;
+    /* Adjust this value as needed */
+}
+
+#header {
+
+    position: relative;
+    top: 2%;
+    left: 1%;
+    border: none;
+    padding: 1.5% 1%;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    /* Adjust this value as needed */
 }

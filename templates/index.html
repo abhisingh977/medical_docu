@@ -38,40 +38,20 @@
 
     <div class="container">
 
-        <a href="{{ url_for('upload')}}" id="upload_but">Upload File</a>
+        <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
 
-        <h1>Medical Document Search</h1>
+        <h1 id="header">Medical Document Search</h1>
         <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
             value="{{ request.form['text'] }}">
         <br>
-
 
         <!-- Filter button -->
         <button id="filter-btn"> Add Filters</button>
         <br><br>
         <!-- Filter options container -->
-        <div id="filter-options">
-            <div class="year-container">
-                <b><label for="start-year">Start Year:</label></b>
-                <select id="start-year" name="start_year"></select>
-                <b> <label for="end-year">&nbsp &nbsp End Year:</label></b>
-                <select id="end-year" name="end_year"></select>
-            </div> <br>
-            <b>Filter by book name:</b> <br>
-            <label>
 
-                <input type="checkbox" id="option1" name="option1"> Option 1
-            </label>
-            <label>
-                <input type="checkbox" id="option2" name="option2"> Option 2
-            </label>
-            <label>
-                <input type="checkbox" id="option3" name="option3"> Option 3
-            </label>
-            <!-- Add more checkboxes as needed -->
-            <br>
-            <button id="apply-btn">Apply</button>
-            <br><br>
+        <div class="filter-container">
+            {% include 'filter.html' %}
         </div>
         <button type="submit" id="click" onclick="sendRequests()">Search</button>
 
