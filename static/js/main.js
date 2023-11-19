@@ -73,7 +73,7 @@ function sendRequests() {
     });
 
     // Make a request to API 2 with user input
-    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function (api2Data) {
+    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',')  }, function (api2Data) {
         $('#loadingIndicator').hide();
 
         displayApi2Results(api2Data);

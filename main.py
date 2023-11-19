@@ -4,12 +4,14 @@ from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embeddi
 from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
+import io
 import os
 import json
+import uuid
+from google.cloud import storage, firestore
 from function import request_to_sentence_embedding, search_client, login_is_required, make_request, get_llm_response
 import requests
 from concurrent.futures import ThreadPoolExecutor
-from google.cloud import firestore
 from dotenv import load_dotenv
 import logging
 
@@ -20,6 +22,8 @@ db = firestore.Client(project="medical-docu")
 app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
 app.secret_key = os.environ.get('ClientSecret')
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 
 @app.route("/")
 def index():
@@ -103,6 +107,12 @@ def api2():
     input_text = request.args.get('input')
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
+    print("start_year")
+    print(start_year)
+    print("end_year")
+    print(end_year)
+
+
     # Parse options parameter into a list
     options = request.args.get('options')
     if options:
@@ -161,6 +171,34 @@ def api2():
     except Exception as e:
         return render_template("server_limit.html")
 
+@app.route('/upload_chunk', methods=['POST'])
+def upload_chunk():
+    try:
+        chunk = request.files['document'].read()
+        save_chunk(chunk)
+        return render_template("pdf_uploaded.html")
+    except Exception as e:
+        return render_template("server_limit.html")
+
+
+def upload_to_gcs(file_data):
+    client = storage.Client()
+    CHUNK_SIZE = 1024 * 1024 * 30
+    bucket = client.get_bucket("user_uploaded_files")
+    blob = bucket.blob(f"{uuid.uuid4().hex}.pdf", chunk_size=CHUNK_SIZE)
+    blob.upload_from_file(file_data, content_type='multipart/form-data')
+
+def save_chunk(chunk):
+    if 'file_data' not in save_chunk.__dict__:
+        save_chunk.file_data = io.BytesIO()
+    save_chunk.file_data.write(chunk)
+
+    save_chunk.file_data.seek(0)
+    upload_to_gcs(save_chunk.file_data)
+
+@app.route('/upload')
+def upload():
+    return render_template('upload.html')
 
 if __name__ == "__main__":
     app.run(debug=True,host="0.0.0.0", port=os.getenv("PORT", 8080))
