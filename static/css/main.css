@@ -107,9 +107,9 @@ li {
 
 #oauth-google {
     position: absolute;
-    top: 20px;
+    top: 10px;
     /* Adjust this value to position the image from the top */
-    right: 20px;
+    right: 10px;
     /* Adjust this value to position the image from the right */
 }
 
