@@ -23,10 +23,10 @@ app.secret_key = os.environ.get('ClientSecret')
 
 @app.route("/")
 def index():
-    try:
-        Thread(target=make_request, args=(embedding_url,)).start()
-    except:
-        pass
+    # try:
+    #     Thread(target=make_request, args=(embedding_url,)).start()
+    # except:
+    #     pass
     return render_template("index.html")
 
 
@@ -103,6 +103,15 @@ def api2():
     input_text = request.args.get('input')
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
+    # Parse options parameter into a list
+    options = request.args.get('options')
+    if options:
+        options_list = options.split(',')
+    else:
+        options_list = []
+
+    print("Options:")
+    print(options_list)
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks
@@ -124,6 +133,11 @@ def api2():
         "filter": {"must": [{"key": "year",
                 "range": {"gte": start_year,
                         "lte": end_year}
+                },{
+                "key": "book_name",
+                "match": {
+                    "any": ["Miller's Anesthesia "]
+                }
                 }]}
         }
 
