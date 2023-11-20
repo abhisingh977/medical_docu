@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from google.cloud import firestore
 from dotenv import load_dotenv
 import logging
+# from flask_cors import CORS
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +21,7 @@ db = firestore.Client(project="medical-docu")
 app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
 app.secret_key = os.environ.get('ClientSecret')
+# CORS(app)
 
 @app.route("/")
 def index():
@@ -27,11 +29,15 @@ def index():
         Thread(target=make_request, args=(embedding_url,)).start()
     except:
         pass
-    return render_template("index.html")
+    if "google_id" in session:
+        # User is already logged in, redirect to the main page
+        return redirect("/authed_user")
+
+    return render_template("login_page.html")
 
 
-@login_is_required
 @app.route("/authed_user")
+@login_is_required
 def authed_user():
     return render_template("index.html")
 
@@ -96,6 +102,7 @@ def api1():
     # Replace the following line with your API 1 call
     api1_response = {"data": f"{llm_res}"}
     return jsonify(api1_response)
+
 
 @app.route('/search')
 def api2():

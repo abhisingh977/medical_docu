@@ -28,16 +28,7 @@
 <body>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
-    <div id="oauth-google">
-        <a href="{{ url_for('login') }}">
-            <img src="{{ url_for('static', filename='/images/google-logo.png') }}" width="55px" height="55px"
-                alt="Google logo">
-        </a>
-    </div>
-
     <div class="container">
-
-
         <h1>Medical Document Search</h1>
         <label for="userInput">Enter Text:</label>
         <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
