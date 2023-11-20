@@ -30,9 +30,10 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
     <div class="container">
+        <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
         <h1>Medical Document Search</h1>
         <label for="userInput">Enter Text:</label>
-        <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
+
 
 
         <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
