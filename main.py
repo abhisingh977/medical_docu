@@ -219,7 +219,13 @@ def save_chunk(chunk):
 
 @app.route('/upload')
 def upload():
-    return render_template('upload.html')
+    
+    if "google_id" in session:
+        # User is already logged in, redirect to the main page
+        return render_template('upload.html')
+    
+    return render_template("login_page.html")
+    
 
 if __name__ == "__main__":
     app.run(debug=True,host="0.0.0.0", port=os.getenv("PORT", 8080))
