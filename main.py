@@ -39,6 +39,9 @@ def index():
 
     return render_template("login_page.html")
 
+@app.route("/no_login")
+def no_login():
+    return render_template("index.html")
 
 @app.route("/authed_user")
 @login_is_required
@@ -96,7 +99,6 @@ def callback():
 
     return redirect("/authed_user")
 
-
 @app.route('/llm')
 def api1():
     # Access user input from the request
@@ -106,7 +108,6 @@ def api1():
     # Replace the following line with your API 1 call
     api1_response = {"data": f"{llm_res}"}
     return jsonify(api1_response)
-
 
 @app.route('/search')
 def api2():
