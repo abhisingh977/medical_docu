@@ -59,7 +59,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
-    return render_template("index.html")
+    return render_template("login_page.html")
 
 @app.route("/callback")
 def callback():

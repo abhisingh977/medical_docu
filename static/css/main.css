@@ -122,7 +122,8 @@ li {
     background-color: #007bff;
     color: #fff;
     position: relative;
-    top: 12px;
+    top: 15px;
+    left: 1px;
     border: none;
     padding: 8px 8px;
     border-radius: 5px;
@@ -130,6 +131,21 @@ li {
     text-decoration: none;
     /* Adjust this value as needed */
 }
+
+#logout {
+    background-color: #007bff;
+    color: #fff;
+    position: absolute;
+    border: none;
+    padding: 8px 8px;
+    border-radius: 5px;
+    text-decoration: none;
+    top: 5px;
+    /* Adjust this value to position the image from the top */
+    right: 10px;
+    /* Adjust this value to position the image from the right */
+}
+
 
 #header {
     position: relative;
