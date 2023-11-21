@@ -5,6 +5,7 @@ from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
 import io
+import time
 import os
 import json
 import uuid
@@ -23,16 +24,17 @@ db = firestore.Client(project="medical-docu")
 app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
 app.secret_key = os.environ.get('ClientSecret')
+user_collection = db.collection("users")
 # CORS(app)
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 
 @app.route("/")
 def index():
-    try:
-        Thread(target=make_request, args=(embedding_url,)).start()
-    except:
-        pass
+    # try:
+    #     Thread(target=make_request, args=(embedding_url,)).start()
+    # except:
+    #     pass
     if "google_id" in session:
         # User is already logged in, redirect to the main page
         return redirect("/authed_user")
@@ -57,17 +59,13 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
-    return render_template("index.html")
+    return render_template("login_page.html")
 
 @app.route("/callback")
 def callback():
 
-    logging.info("URL")
-    logging.info(request.url)
     https_authorization_url = request.url.replace('http://', 'https://')
-
     flow.fetch_token(authorization_response=https_authorization_url)
-
     if not session["state"] == request.args["state"]:
         abort(500)  # State does not match!
 
@@ -88,7 +86,7 @@ def callback():
     session["email"] = id_info.get("email")
     session["locale"] = id_info.get("locale")
 
-    doc_ref = db.collection("users").document(id_info.get("sub"))
+    doc_ref = user_collection.document(id_info.get("sub"))
     doc = doc_ref.get()
     if doc.exists:
         field_value = doc.get("count")
@@ -123,6 +121,17 @@ def api2():
     else:
         options_list = []
 
+    google_id = session.get("google_id")
+    if google_id:
+        doc_ref = user_collection.document(session["google_id"])
+    else:
+        doc_ref = user_collection.document("unknown")
+    
+    current_timestamp = time.time()
+    activity = doc_ref.collection("activity")
+    activity = activity.document(str(current_timestamp))
+    activity.set({"start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    
     chunks = input_text.lower()
     input_data = {
     "input_text": chunks

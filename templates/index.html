@@ -31,11 +31,12 @@
 
     <div class="container">
         <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
+        <a href="{{ url_for('logout')}}" id="logout">Logout</a>
+
+
         <h1>Medical Document Search</h1>
+
         <label for="userInput">Enter Text:</label>
-
-
-
         <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
             value="{{ request.form['text'] }}">
         <br>
