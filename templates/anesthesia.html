@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X14CB1KS9Q"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-X14CB1KS9Q');
+    </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MFKV4DJ9CR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-MFKV4DJ9CR');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Document Search</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+
+</head>
+
+<body>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <div class="container">
+        <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
+        <a href="{{ url_for('logout')}}" id="logout">Logout</a>
+
+
+        <h1>Anesthesia Document Search</h1>
+
+        <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
+            value="{{ request.form['text'] }}">
+        <br>
+
+        <!-- Filter button -->
+        <button id="filter-btn"> Add Filters</button>
+        <br><br>
+        <div class="filter-container">
+            {% include 'anesthesia_filter.html' %}
+        </div>
+        <button type="submit" id="click" onclick="sendRequests()">Search</button>
+
+        <div class="results-box" id="llmResponse"> </div>
+        <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 20px;">Processing your
+            request...</div>
+        <div class="results-box" id="searchResponse"></div>
+
+    </div>
+    <script src="/static/js/main.js"></script>
+</body>
+
+</html>

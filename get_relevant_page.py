@@ -5,7 +5,7 @@ import fitz
 import base64
 import re 
 
-dpi = 90
+dpi = 70
 
 mat = fitz.Matrix(dpi / 72, dpi / 72)
 highlight_color = (1, 1, 0)
@@ -17,10 +17,10 @@ def transform_text(input_text):
     return transformed_text
 
 
-def pdf_to_image(filename, page_no, embedd_text=None):
+def pdf_to_image(filename, page_no,embedd_text,specialization):
     
     filename = transform_text(filename)
-    path = f"https://storage.googleapis.com/zos_medical_pdfs/anesthesia/books/{filename}/{page_no}.pdf"
+    path = f"https://storage.googleapis.com/zos_medical_pdfs/{specialization}/books/{filename}/{page_no}.pdf"
     response = requests.get(path)
 
 
@@ -43,24 +43,26 @@ def pdf_to_image(filename, page_no, embedd_text=None):
             image = image.tobytes()
             image = base64.b64encode(image).decode("utf-8")
 
-    return image
+        return image
+    else:
+        return None
 
 
-def contact(filename, page_no):
+def contact(filename, page_no, specialization):
     filename  = re.sub(r'[^a-zA-Z\s]', '', filename)
     filename = transform_text(filename)
     page_no = page_no.split("_")[1]
     page_no = str(int(page_no) + 1)
-    return f"https://storage.googleapis.com/zos_books/anesthesia/books/{filename}.pdf#page={page_no}"
+    return f"https://storage.googleapis.com/zos_books/{specialization}/books/{filename}.pdf#page={page_no}"
 
-def get_relevant_text(result):
+def get_relevant_text(result, specialization):
     result = result[:5]
 
     context = [
         {
-            "pdf_link": contact(x["payload"]["book_name"], x["payload"]["page_no"]),
+            "pdf_link": contact(x["payload"]["book_name"], x["payload"]["page_no"],specialization),
             "pdf_image": pdf_to_image(
-                x["payload"]["book_name"], x["payload"]["page_no"], x["payload"]["text"]
+                x["payload"]["book_name"], x["payload"]["page_no"], x["payload"]["text"],specialization
             ),
             "text": x["payload"]["text"],
             "page_no": str(int(x["payload"]["page_no"].split("_")[1])+1),
