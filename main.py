@@ -29,6 +29,14 @@ user_collection = db.collection("users")
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 
+@app.route('/anesthesia')
+def anesthesia():
+    return render_template('anesthesia.html')
+
+@app.route('/gyno')
+def gyno():
+    return render_template('gyno.html')
+
 @app.route("/")
 def index():
     # try:
@@ -43,12 +51,12 @@ def index():
 
 @app.route("/no_login")
 def no_login():
-    return render_template("index.html")
+    return render_template("channel.html")
 
 @app.route("/authed_user")
 @login_is_required
 def authed_user():
-    return render_template("index.html")
+    return render_template("channel.html")
 
 @app.route("/login")
 def login():
