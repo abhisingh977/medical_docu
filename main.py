@@ -1,6 +1,6 @@
 from flask import Flask, request,jsonify, render_template, redirect, session, abort
 from google.oauth2 import id_token
-from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2
+from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2, endpoint3, headers3
 from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
@@ -119,6 +119,12 @@ def api1():
 def api2():
     # Access user input from the request
     input_text = request.args.get('input')
+    try:
+
+        input_text = get_llm_response(input_text, specialization="anesthesia",max_output_tokens=60)
+    except:
+        pass
+
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
 
@@ -233,7 +239,92 @@ def upload():
         return render_template('upload.html')
     
     return render_template("login_page.html")
+
+
+@app.route('/search2')
+def api3():
+    # Access user input from the request
+    input_text = request.args.get('input')
     
+    try:
+        input_text = get_llm_response(input_text, specialization="anesthesia",max_output_tokens=60)
+    except:
+        pass
+    
+    start_year = int(request.args.get('sy'))
+    end_year = int(request.args.get('ey'))
+
+    # Parse options parameter into a list
+    options = request.args.get('options')
+    if options:
+        options_list = options.split(',')
+    else:
+        options_list = []
+
+    google_id = session.get("google_id")
+    if google_id:
+        doc_ref = user_collection.document(session["google_id"])
+    else:
+        doc_ref = user_collection.document("unknown")
+    
+    current_timestamp = time.time()
+    activity = doc_ref.collection("activity")
+    activity = activity.document(str(current_timestamp))
+    activity.set({"start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    
+    chunks = input_text.lower()
+    input_data = {
+    "input_text": chunks
+    }
+
+    try:
+        response = request_to_sentence_embedding(embedding_url+"/"+"get_embedding_from_input/", input_data)
+        if response.status_code == 200:
+            embedding = response.json()  
+        else:
+            logging.info(f"Request failed with status code {response.status_code}")
+            logging.info(response.text)  # Print the error message or details if the request fails
+            logging.info(f"No embedding")
+        if len(options_list) != 0: 
+            payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {"must": [{"key": "year",
+                    "range": {"gte": start_year,
+                            "lte": end_year}
+                    },{
+                    "key": "book_name",
+                    "match": {
+                        "any": options_list
+                    }
+                    }]}
+            }
+        else:
+            payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {"must": [{"key": "year",
+                    "range": {"gte": start_year,
+                            "lte": end_year}
+                    }]}
+            }
+
+        result = search_client(endpoint3, payload, headers3)
+
+        
+        sorted_res = sorted(result, key=lambda x: x['score'], reverse=True)
+        logging.info(f"Total res: {str(len(sorted_res))}")
+        
+        # Call API 2 with user input and return the response
+        # Replace the following line with your API 2 call
+        api2_response = {"data": f"{json.dumps(sorted_res)}"}
+
+        return jsonify(api2_response)
+
+    except Exception as e:
+        return render_template("server_limit.html")
 
 if __name__ == "__main__":
     app.run(debug=True,host="0.0.0.0", port=os.getenv("PORT", 8080))

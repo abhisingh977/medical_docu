@@ -49,6 +49,42 @@ $('#filter-btn').on('click', function () {
     $('#filter-options').toggle();
 });
 
+
+function sendRequests2() {
+    // Get user input
+    $('#loadingIndicator').show();
+    var userInput = $('#userInput').val();
+    var strat_year = $('#start-year').val();
+    var end_year = $('#end-year').val();
+
+
+
+    // Display or hide results-box based on the content
+    // Show loading message or spinner
+
+    // Display or hide results-box based on the content
+    // Show loading message or spinner
+
+    // Make a request to API 1 with user input
+    $.get('/llm', { input: userInput }, function (api1Data) {
+        // Display API 1 response to the user
+
+        $('#llmResponse').text(api1Data.data);
+        toggleResultsBox1(api1Data.data)
+    });
+
+    // Make a request to API 2 with user input
+    $.get('/search2', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function (api3Data) {
+        $('#loadingIndicator').hide();
+
+        displayApi2Results(api3Data);
+        toggleResultsBox2(api3Data.data);
+    }
+    );
+
+}
+
+
 function sendRequests() {
     // Get user input
     $('#loadingIndicator').show();

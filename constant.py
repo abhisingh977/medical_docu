@@ -18,25 +18,35 @@ collection_name1 = os.environ.get('collection_name1')
 
 url2 = os.environ.get('url2')
 api_key2 = os.environ.get('api_key2')
-collection_name2 = os.environ.get('collection_name2')
+
 
 
 PaLM_API_KEY= os.getenv('PaLM_API_KEY')
 PaLM_url = os.getenv('PaLM_url')
-
 embedding_url = os.getenv('embedding_url')
 
 
 top_k = 10
 
+collection_name2 = os.environ.get('collection_name2')
 endpoint2 = f'{url2}/collections/{collection_name2}/points/search'
 headers2 = {
   'Content-Type': 'application/json',
   'api-key': api_key2
 }
+
 collection_name1 = "data"
 endpoint1 = f'{url1}/collections/{collection_name1}/points/search'
 headers1 = {
   'Content-Type': 'application/json',
   'api-key': api_key1
+}
+
+url3 = os.environ.get('url3')
+api_key3 = os.environ.get('api_key3')
+collection_name3 = os.environ.get('collection_name3')
+endpoint3 = f'{url3}/collections/{collection_name3}/points/search'
+headers3 = {
+  'Content-Type': 'application/json',
+  'api-key': api_key3
 }

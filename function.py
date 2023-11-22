@@ -74,13 +74,13 @@ def request_to_sentence_embedding(embedding_url, input_data):
     return response
 
 
-def get_llm_response(input_text: str):
-    json = {"prompt": { "text": f"For the text that is inside '' generate factual information in context of medical field especially in context of anesthisia: '{input_text}'"},
+def get_llm_response(input_text: str, specialization: str, max_output_tokens=800):
+    json = {"prompt": { "text": f"For the text that is inside '' generate factual summary in context of medical field especially in context of {specialization}: '{input_text}'"},
     "temperature": 0.0,
     "candidate_count": 1,
     "top_k": 40,
     "top_p": 0.95,
-    "max_output_tokens": 800,
+    "max_output_tokens": max_output_tokens,
     "stop_sequences": [],
     "safety_settings": [{"category":"HARM_CATEGORY_DEROGATORY","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_TOXICITY","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_VIOLENCE","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_SEXUAL","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_MEDICAL","threshold":"BLOCK_NONE"},{"category":"HARM_CATEGORY_DANGEROUS","threshold":"BLOCK_NONE"}]
     }
