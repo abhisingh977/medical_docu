@@ -33,16 +33,16 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.environ.get('GOOGLE_APPLICATION
 def anesthesia():
     return render_template('anesthesia.html')
 
-@app.route('/gyno')
+@app.route('/gynecology')
 def gyno():
-    return render_template('gyno.html')
+    return render_template('gynecology.html')
 
 @app.route("/")
 def index():
-    # try:
-    #     Thread(target=make_request, args=(embedding_url,)).start()
-    # except:
-    #     pass
+    try:
+        Thread(target=make_request, args=(embedding_url,)).start()
+    except:
+        pass
     if "google_id" in session:
         # User is already logged in, redirect to the main page
         return redirect("/authed_user")
@@ -109,7 +109,8 @@ def callback():
 def api1():
     # Access user input from the request
     user_input = request.args.get('input')
-    llm_res = get_llm_response(user_input)
+    specialization = request.args.get('specialization')
+    llm_res = get_llm_response(user_input, specialization)
     # Call API 1 with user input and return the response
     # Replace the following line with your API 1 call
     api1_response = {"data": f"{llm_res}"}
@@ -119,12 +120,10 @@ def api1():
 def api2():
     # Access user input from the request
     input_text = request.args.get('input')
-    try:
+    if len(input_text) < 30:
+        input_text = get_llm_response(input_text, specialization="anesthesia",max_output_tokens=40)
 
-        input_text = get_llm_response(input_text, specialization="anesthesia",max_output_tokens=60)
-    except:
-        pass
-
+    print(input_text)
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
 
@@ -144,7 +143,7 @@ def api2():
     current_timestamp = time.time()
     activity = doc_ref.collection("activity")
     activity = activity.document(str(current_timestamp))
-    activity.set({"start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    activity.set({"specialization":"anesthesia","start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
     
     chunks = input_text.lower()
     input_data = {
@@ -187,8 +186,8 @@ def api2():
 
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            future1 = executor.submit(search_client, endpoint1, payload, headers1)
-            future2 = executor.submit(search_client, endpoint2, payload, headers2)
+            future1 = executor.submit(search_client, endpoint1, payload, headers1, specialization="anesthesia")
+            future2 = executor.submit(search_client, endpoint2, payload, headers2,specialization="anesthesia")
 
         result1 = future1.result()
         result2 = future2.result()
@@ -245,12 +244,10 @@ def upload():
 def api3():
     # Access user input from the request
     input_text = request.args.get('input')
-    
-    try:
-        input_text = get_llm_response(input_text, specialization="anesthesia",max_output_tokens=60)
-    except:
-        pass
-    
+
+    if len(input_text) < 30:
+        input_text = get_llm_response(input_text, specialization="gynecology",max_output_tokens=40)
+
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
 
@@ -270,7 +267,7 @@ def api3():
     current_timestamp = time.time()
     activity = doc_ref.collection("activity")
     activity = activity.document(str(current_timestamp))
-    activity.set({"start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    activity.set({"specialization":"gynecology","start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
     
     chunks = input_text.lower()
     input_data = {
@@ -288,7 +285,7 @@ def api3():
         if len(options_list) != 0: 
             payload = {
             "vector": embedding[0],
-            "limit": top_k,
+            "limit": 10,
             "with_payload": True,
             "filter": {"must": [{"key": "year",
                     "range": {"gte": start_year,
@@ -303,7 +300,7 @@ def api3():
         else:
             payload = {
             "vector": embedding[0],
-            "limit": top_k,
+            "limit": 10,
             "with_payload": True,
             "filter": {"must": [{"key": "year",
                     "range": {"gte": start_year,
@@ -311,9 +308,8 @@ def api3():
                     }]}
             }
 
-        result = search_client(endpoint3, payload, headers3)
+        result = search_client(endpoint3, payload, headers3,specialization="gynecology")
 
-        
         sorted_res = sorted(result, key=lambda x: x['score'], reverse=True)
         logging.info(f"Total res: {str(len(sorted_res))}")
         

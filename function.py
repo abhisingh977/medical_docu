@@ -49,14 +49,14 @@ def request_to_qrand(endpoint, data, headers, timeout=60):
 
 
 
-def search_client(endpoint, payload, headers):
+def search_client(endpoint, payload, headers, specialization):
     logging.info(f"Making request to endpoint: {endpoint}")
     res = request_to_qrand(endpoint=endpoint, data=payload, headers=headers,timeout=500)
     if res.status_code == 200:  # Assuming a successful response has status code 200
         res = res.json()  # Get the response data in JSON format
         res = res["result"]
         res = sorted(res, key=lambda x: x['score'], reverse=True)
-        res = get_relevant_text(res)
+        res = get_relevant_text(res, specialization)
         logging.info(f"Successful return to request to endpoint: {endpoint}")
     # Process the data as needed
     else:

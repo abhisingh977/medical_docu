@@ -56,17 +56,10 @@ function sendRequests2() {
     var userInput = $('#userInput').val();
     var strat_year = $('#start-year').val();
     var end_year = $('#end-year').val();
-
-
-
-    // Display or hide results-box based on the content
-    // Show loading message or spinner
-
-    // Display or hide results-box based on the content
-    // Show loading message or spinner
+    var specialization_name = 'gynecology'
 
     // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput }, function (api1Data) {
+    $.get('/llm', { input: userInput, specialization: specialization_name }, function (api1Data) {
         // Display API 1 response to the user
 
         $('#llmResponse').text(api1Data.data);
@@ -91,7 +84,7 @@ function sendRequests() {
     var userInput = $('#userInput').val();
     var strat_year = $('#start-year').val();
     var end_year = $('#end-year').val();
-
+    var specialization_name = 'anesthesia'
 
 
     // Display or hide results-box based on the content
@@ -101,7 +94,7 @@ function sendRequests() {
     // Show loading message or spinner
 
     // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput }, function (api1Data) {
+    $.get('/llm', { input: userInput, specialization: specialization_name }, function (api1Data) {
         // Display API 1 response to the user
 
         $('#llmResponse').text(api1Data.data);
@@ -121,9 +114,7 @@ function sendRequests() {
 
 function displayApi2Results(api2Data) {
     // Parse the JSON string in the 'data' field
-    console.log('api2Data.data', api2Data.data);
     var data = JSON.parse(api2Data.data);
-
     $('#searchResponse').empty();
 
     // Append API 2 results to the existing HTML
@@ -142,14 +133,10 @@ function displayApi2Results(api2Data) {
         var imageContainer = $('<div class="image-container">');
         imageContainer.append('<img src="data:image/jpeg;base64, ' + result.pdf_image + '" alt="Relevant Page">');
         listItem.append(imageContainer);
-
-
         listItem.append('<br>');
         listItem.append('<a href="' + result.pdf_link + '" target="_blank">Continue with this PDF </a> <br> <br>');
         listItem.append('<br>');
-
         resultsList.append(listItem);
-
     });
 }
 
