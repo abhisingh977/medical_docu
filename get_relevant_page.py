@@ -4,8 +4,18 @@ from io import BytesIO
 import fitz
 import base64
 import re 
+from flask import request
 
-dpi = 70
+if request.user_agent.is_mobile:
+    dpi = 70
+elif request.user_agent.is_tablet:
+    dpi = 70
+  # The user is using a tablet device
+elif request.user_agent.is_desktop:
+    dpi = 120
+else:
+    dpi = 120
+
 
 mat = fitz.Matrix(dpi / 72, dpi / 72)
 highlight_color = (1, 1, 0)
