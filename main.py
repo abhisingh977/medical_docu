@@ -34,7 +34,7 @@ def anesthesia():
     return render_template('anesthesia.html')
 
 @app.route('/gynecology')
-def gyno():
+def gynecology():
     return render_template('gynecology.html')
 
 @app.route("/")
