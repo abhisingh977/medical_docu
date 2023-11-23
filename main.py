@@ -23,6 +23,7 @@ load_dotenv('.env')
 db = firestore.Client(project="medical-docu")
 app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
+page_uuid = str(uuid.uuid1())
 app.secret_key = os.environ.get('ClientSecret')
 user_collection = db.collection("users")
 # CORS(app)
@@ -141,10 +142,12 @@ def api2():
         doc_ref = user_collection.document("unknown")
     
     doc_time= time.strftime('%X %x %Z')
-    activity = doc_ref.collection("activity")
+    activity = doc_ref.collection("session")
+    activity = activity.document(page_uuid)
+    activity = activity.collection("activity")
     activity = activity.document(str(doc_time).replace("/", "-"))
-    activity = activity.collection("session")
-    activity = activity.document(str(uuid.uuid1()).replace("-",""))
+
+
     activity.set({"time":str(doc_time), "specialization":"anesthesia","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "selected books": options_list})        
     
     chunks = input_text.lower()
@@ -267,10 +270,13 @@ def api3():
         doc_ref = user_collection.document("unknown")
     
     doc_time= time.strftime('%X %x %Z')
-    activity = doc_ref.collection("activity")
+
+    activity = doc_ref.collection("session")
+    activity = activity.document(page_uuid)
+    activity = activity.collection("activity")
     activity = activity.document(str(doc_time).replace("/", "-"))
-    activity = activity.collection("session")
-    activity = activity.document(str(uuid.uuid1()).replace("-",""))
+
+
     activity.set({"time":doc_time,"specialization":"gynecology","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "selected books": options_list})        
     
     chunks = input_text.lower()
