@@ -39,10 +39,10 @@ def gynecology():
 
 @app.route("/")
 def index():
-    try:
-        Thread(target=make_request, args=(embedding_url,)).start()
-    except:
-        pass
+    # try:
+    #     Thread(target=make_request, args=(embedding_url,)).start()
+    # except:
+    #     pass
     if "google_id" in session:
         # User is already logged in, redirect to the main page
         return redirect("/authed_user")
@@ -119,11 +119,11 @@ def api1():
 @app.route('/search')
 def api2():
     # Access user input from the request
-    input_text = request.args.get('input')
+    user_input_text = request.args.get('input')
     if len(input_text) < 30:
-        input_text = get_llm_response(input_text, specialization="anesthesia",max_output_tokens=40)
+        input_text = get_llm_response(user_input_text, specialization="anesthesia",max_output_tokens=40)
 
-    print(input_text)
+
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
 
@@ -143,7 +143,7 @@ def api2():
     current_timestamp = time.time()
     activity = doc_ref.collection("activity")
     activity = activity.document(str(current_timestamp))
-    activity.set({"specialization":"anesthesia","start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    activity.set({"specialization":"anesthesia","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
     
     chunks = input_text.lower()
     input_data = {
@@ -243,10 +243,10 @@ def upload():
 @app.route('/search2')
 def api3():
     # Access user input from the request
-    input_text = request.args.get('input')
-
+    user_input_text = request.args.get('input')
+    
     if len(input_text) < 30:
-        input_text = get_llm_response(input_text, specialization="gynecology",max_output_tokens=40)
+        input_text = get_llm_response(user_input_text, specialization="gynecology",max_output_tokens=40)
 
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
@@ -267,7 +267,7 @@ def api3():
     current_timestamp = time.time()
     activity = doc_ref.collection("activity")
     activity = activity.document(str(current_timestamp))
-    activity.set({"specialization":"gynecology","start_year": start_year,"end_year": end_year,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    activity.set({"specialization":"gynecology","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
     
     chunks = input_text.lower()
     input_data = {
