@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 import logging
 # from flask_cors import CORS
-
+time.tzset()
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 load_dotenv('.env')
@@ -120,7 +120,7 @@ def api1():
 def api2():
     # Access user input from the request
     user_input_text = request.args.get('input')
-    if len(input_text) < 30:
+    if len(user_input_text) < 30:
         input_text = get_llm_response(user_input_text, specialization="anesthesia",max_output_tokens=40)
 
 
@@ -140,10 +140,12 @@ def api2():
     else:
         doc_ref = user_collection.document("unknown")
     
-    current_timestamp = time.time()
+    doc_time= time.strftime('%X %x %Z')
     activity = doc_ref.collection("activity")
-    activity = activity.document(str(current_timestamp))
-    activity.set({"specialization":"anesthesia","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    activity = activity.document(str(doc_time).replace("/", "-"))
+    activity = activity.collection("session")
+    activity = activity.document(str(uuid.uuid1()).replace("-",""))
+    activity.set({"time":str(doc_time), "specialization":"anesthesia","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "selected books": options_list})        
     
     chunks = input_text.lower()
     input_data = {
@@ -245,7 +247,7 @@ def api3():
     # Access user input from the request
     user_input_text = request.args.get('input')
     
-    if len(input_text) < 30:
+    if len(user_input_text) < 30:
         input_text = get_llm_response(user_input_text, specialization="gynecology",max_output_tokens=40)
 
     start_year = int(request.args.get('sy'))
@@ -264,10 +266,12 @@ def api3():
     else:
         doc_ref = user_collection.document("unknown")
     
-    current_timestamp = time.time()
+    doc_time= time.strftime('%X %x %Z')
     activity = doc_ref.collection("activity")
-    activity = activity.document(str(current_timestamp))
-    activity.set({"specialization":"gynecology","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "time": current_timestamp, "selected books": options_list})        
+    activity = activity.document(str(doc_time).replace("/", "-"))
+    activity = activity.collection("session")
+    activity = activity.document(str(uuid.uuid1()).replace("-",""))
+    activity.set({"time":doc_time,"specialization":"gynecology","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "selected books": options_list})        
     
     chunks = input_text.lower()
     input_data = {
