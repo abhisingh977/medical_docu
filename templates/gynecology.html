@@ -25,6 +25,7 @@
 
     <div class="container">
         <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
+        <a href="{{ url_for('bookmarks')}}" id="bookmark">Bookmarks</a>
         <a href="{{ url_for('logout')}}" id="logout">Logout</a>
 
 
@@ -39,8 +40,9 @@
         <div class="filter-container">
             {% include 'gynecology_filter.html' %}
         </div>
-        <button type="submit" id="click" onclick="sendRequests2()">Search</button>
 
+        <button type="submit" id="click" onclick="sendRequests2()">Search</button>
+        <button type="submit" id="book-click" onclick="save()">Bookmark</button>
         <div class="results-box" id="llmResponse"> </div>
         <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 20px;">Processing your request...
         </div>
