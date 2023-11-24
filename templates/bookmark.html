@@ -75,19 +75,13 @@
 
     <div class="bookmark-container">
         <ul class="bookmark-list">
+            {% for bookmark in all_bookmarks %}
             <li class="bookmark-item">
-                <a href="https://www.example.com" class="bookmark-link">Example Website</a>
-                <div class="bookmark-actions">
-                    <button class="delete-button">Delete</button>
-                </div>
+                <a href="{{ url_for('download_bookmark', bookmark_path=bookmark['path']) }}" class="bookmark-link">
+                        {{ bookmark['input_text'] }}
+                    </a>
             </li>
-            <li class="bookmark-item">
-                <a href="https://www.openai.com" class="bookmark-link">OpenAI</a>
-                <div class="bookmark-actions">
-                    <button class="delete-button">Delete</button>
-                </div>
-            </li>
-            <!-- Add more bookmark items as needed -->
+            {% endfor %}
         </ul>
     </div>
 

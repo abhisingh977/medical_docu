@@ -152,3 +152,18 @@ def upload_blob_with_timeout(
     blob.upload_from_filename(source_file_name, timeout=custom_timeout)
     blob.make_public()
     logging.info(f"File {source_file_name} uploaded to {destination_blob_name}.")
+
+
+def download_html_from_gcs(bookmark_path):
+    # Use the appropriate GCS bucket and download logic
+    bucket_name = "user_bookmark_html"
+    blob_name = f"{bookmark_path}"
+    storage_client = storage.Client.from_service_account_json(
+        GOOGLE_APPLICATION_CREDENTIALS
+    )
+    # Download the HTML content from GCS
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    html_content = blob.download_as_text()
+
+    return html_content

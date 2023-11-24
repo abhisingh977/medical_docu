@@ -6,7 +6,6 @@ from flask import (
     redirect,
     session,
     abort,
-    url_for,
 )
 from google.oauth2 import id_token
 from constant import (
@@ -23,6 +22,7 @@ from constant import (
 )
 from pip._vendor import cachecontrol
 from threading import Thread
+import urllib.request
 import google.auth.transport.requests
 import time
 import os
@@ -31,6 +31,7 @@ import uuid
 from google.cloud import firestore
 from function import (
     request_to_sentence_embedding,
+    download_html_from_gcs,
     save_chunk,
     upload_blob_with_timeout,
     search_client,
@@ -63,7 +64,6 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.environ.get(
     "GOOGLE_APPLICATION_CREDENTIALS"
 )
 
-
 @app.route("/anesthesia")
 def anesthesia():
     if "google_id" in session:
@@ -82,14 +82,32 @@ def gynecology():
     return render_template("gynecology.html")
 
 
+@app.route("/download/<path:bookmark_path>")
+def download_bookmark(bookmark_path):
+    # Assuming bookmark_path is the path to the HTML file in GCS
+    # Download the HTML content from GCS
+    html_content = download_html_from_gcs(bookmark_path)
+
+    # You can also save the HTML content to a temporary file if needed
+    # and then send it as a file to the user
+    # temp_file_path = save_html_to_temp_file(html_content)
+    # return send_file(temp_file_path, as_attachment=True)
+
+    # Alternatively, you can pass the HTML content directly to the template
+    return render_template("display.html", html_content=html_content)
+
+
+
 @app.route("/bookmarks")
 def bookmarks():
     if "google_id" in session:
         doc_ref = user_collection.document(session["google_id"])
-        doc = doc_ref.get()
-        if doc.exists:
-            last_channel = doc.get("last_channel")
-        return render_template("bookmark.html")
+        doc = doc_ref.collection("bookmarks")
+        documents = doc.get()
+
+        all_bookmarks = [document.to_dict() for document in documents]
+        print(all_bookmarks)
+        return render_template("bookmark.html", all_bookmarks = all_bookmarks)
 
     return render_template("login_page.html")
 
@@ -477,7 +495,7 @@ def save_html():
     if google_id:
         doc_ref = user_collection.document(session["google_id"])
 
-        activity = doc_ref.collection("bookmark")
+        activity = doc_ref.collection("bookmarks")
         activity = activity.document(doc_time + "_" + str(search_count))
         activity.set(
             {
