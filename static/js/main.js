@@ -14,7 +14,7 @@ document.getElementById("start-year").innerHTML = optionsStart;
 document.getElementById("end-year").innerHTML = optionsEnd;
 
 // Add event listener to the button click
-document.getElementById("click").addEventListener("click", function (event) {
+document.getElementById("click").addEventListener("click", function(event) {
     const startYear = parseInt(document.getElementById("start-year").value);
     const endYear = parseInt(document.getElementById("end-year").value);
 
@@ -29,10 +29,10 @@ document.getElementById("click").addEventListener("click", function (event) {
 var selectedOptions = [];
 
 // Apply button click event using jQuery
-$('#apply-btn').on('click', function () {
+$('#apply-btn').on('click', function() {
     console.log('Apply button clicked');
     // Get selected checkbox values
-    selectedOptions = $('input[type=checkbox]:checked').map(function () {
+    selectedOptions = $('input[type=checkbox]:checked').map(function() {
         console.log(this.id);
         return this.id;
     }).get();
@@ -45,7 +45,7 @@ $('#apply-btn').on('click', function () {
 });
 
 // JavaScript to toggle the visibility of the filter options using jQuery
-$('#filter-btn').on('click', function () {
+$('#filter-btn').on('click', function() {
     $('#filter-options').toggle();
 });
 
@@ -58,9 +58,9 @@ function sendRequests2() {
     var specialization_name = 'gynecology'
     var api1Completed = false;
     var api2Completed = false;
-    
+
     // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput, specialization: specialization_name }, function (api1Data) {
+    $.get('/llm', { input: userInput, specialization: specialization_name }, function(api1Data) {
         // Display API 1 response to the user
 
         $('#llmResponse').text(api1Data.data);
@@ -72,7 +72,7 @@ function sendRequests2() {
     });
 
     // Make a request to API 2 with user input
-    $.get('/search2', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function (api3Data) {
+    $.get('/search2', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api3Data) {
         $('#loadingIndicator').hide();
 
         displayApi2Results(api3Data);
@@ -81,16 +81,9 @@ function sendRequests2() {
         if (api1Completed) {
             sendHtmlContentToServer();
         }
-    }
-    );
-    function sendHtmlContentToServer() {
-        var htmlContent = $('html').html(); // Get the HTML content of the entire page
+    });
 
-        // Send the HTML content to the server
-        $.post('/save_page', { html_content: htmlContent }, function () {
-            console.log('HTML content saved successfully.');
-        });
-    }
+
 }
 
 
@@ -103,7 +96,7 @@ function sendRequests() {
     var specialization_name = 'anesthesia'
     var api1Completed = false;
     var api2Completed = false;
-    
+
 
     // Display or hide results-box based on the content
     // Show loading message or spinner
@@ -112,40 +105,32 @@ function sendRequests() {
     // Show loading message or spinner
 
     // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput, specialization: specialization_name }, function (api1Data) {
+    $.get('/llm', { input: userInput, specialization: specialization_name }, function(api1Data) {
         // Display API 1 response to the user
 
         $('#llmResponse').text(api1Data.data);
         toggleResultsBox1(api1Data.data);
         api1Completed = true
-        // Check if both requests are completed before sending the HTML content to the server
+            // Check if both requests are completed before sending the HTML content to the server
         if (api2Completed) {
             sendHtmlContentToServer();
         }
     });
 
     // Make a request to API 2 with user input
-    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function (api2Data) {
+    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api2Data) {
         $('#loadingIndicator').hide();
 
         displayApi2Results(api2Data);
         toggleResultsBox2(api2Data.data);
         api2Completed = true
-        // Check if both requests are completed before sending the HTML content to the server
+            // Check if both requests are completed before sending the HTML content to the server
         if (api1Completed) {
             sendHtmlContentToServer();
         }
-    }
-    );
+    });
 
-    function sendHtmlContentToServer() {
-        var htmlContent = $('html').html(); // Get the HTML content of the entire page
 
-        // Send the HTML content to the server
-        $.post('/save_page', { html_content: htmlContent }, function () {
-            console.log('HTML content saved successfully.');
-        });
-    }
 
 }
 
@@ -157,11 +142,11 @@ function displayApi2Results(api2Data) {
     // Append API 2 results to the existing HTML
     var resultsList = $('#searchResponse');
 
-    data.forEach(function (result) {
+    data.forEach(function(result) {
 
         var listItem = $('<ul>');
         listItem.append('<br>')
-        // Relevant Text
+            // Relevant Text
         listItem.append('<b>Relevant text:</b> ' + result.text + '<br>');
         // Name
         listItem.append('<b>Name:</b> ' + result.name + '<br>');
@@ -186,6 +171,7 @@ function toggleResultsBox2(api2Data) {
         resultsBox.hide(); // Hide the results-box
     }
 }
+
 function toggleResultsBox1(api1Data) {
     // Display or hide the results-box based on the content of API 2 response
     var resultsBox = $('#llmResponse');
@@ -194,4 +180,30 @@ function toggleResultsBox1(api1Data) {
     } else {
         resultsBox.hide(); // Hide the results-box
     }
+}
+
+
+
+
+document.getElementById("book-click").addEventListener("click", function() {
+    // Assuming 'html_content' is the content you want to send to the server
+    saveHtmlContentToServer();
+});
+
+function sendHtmlContentToServer() {
+    var htmlContent = $('html').html(); // Get the HTML content of the entire page
+
+    // Send the HTML content to the server
+    $.post('/save_page', { html_content: htmlContent }, function() {
+        console.log('HTML content saved successfully.');
+    });
+}
+
+function saveHtmlContentToServer() {
+    var htmlContent = $('html').html(); // Get the HTML content of the entire page
+
+    // Send the HTML content to the server
+    $.post('/save_html', { html_content: htmlContent }, function() {
+        console.log('HTML content saved successfully.');
+    });
 }

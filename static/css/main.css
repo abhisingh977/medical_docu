@@ -22,7 +22,6 @@ body {
 
 .filter-container {
     background-color: #fff;
-
 }
 
 h1 {
@@ -82,7 +81,6 @@ li {
     /* You can adjust this value as needed for your desired spacing */
 }
 
-
 .image-container {
     text-align: center;
 }
@@ -97,8 +95,6 @@ li {
 .year-container {
     display: flex;
     align-items: center;
-
-
 }
 
 .year-container label {
@@ -113,7 +109,9 @@ li {
     /* Adjust this value to position the image from the right */
 }
 
+
 /* Style for the filter options container */
+
 #filter-options {
     display: none;
 }
@@ -122,10 +120,10 @@ li {
     background-color: #007bff;
     color: #fff;
     position: relative;
-    top: 15px;
+    top: 13px;
     left: 1px;
     border: none;
-    padding: 8px 8px;
+    padding: 5px 5px;
     border-radius: 5px;
     cursor: pointer;
     text-decoration: none;
@@ -137,15 +135,14 @@ li {
     color: #fff;
     position: absolute;
     border: none;
-    padding: 8px 8px;
+    padding: 5px 5px;
     border-radius: 5px;
     text-decoration: none;
-    top: 5px;
+    top: 7px;
     /* Adjust this value to position the image from the top */
     right: 10px;
     /* Adjust this value to position the image from the right */
 }
-
 
 #header {
     position: relative;
@@ -153,6 +150,20 @@ li {
     left: 1%;
     border: none;
     padding: 1.5% 1%;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    /* Adjust this value as needed */
+}
+
+#bookmark {
+    background-color: #007bff;
+    color: #fff;
+    position: relative;
+    top: 13px;
+    left: 5px;
+    border: none;
+    padding: 5px 5px;
     border-radius: 5px;
     cursor: pointer;
     text-decoration: none;

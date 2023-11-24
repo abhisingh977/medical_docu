@@ -6,7 +6,6 @@ from flask import (
     redirect,
     session,
     abort,
-    url_for,
 )
 from google.oauth2 import id_token
 from constant import (
@@ -23,6 +22,7 @@ from constant import (
 )
 from pip._vendor import cachecontrol
 from threading import Thread
+import urllib.request
 import google.auth.transport.requests
 import time
 import os
@@ -31,6 +31,7 @@ import uuid
 from google.cloud import firestore
 from function import (
     request_to_sentence_embedding,
+    download_html_from_gcs,
     save_chunk,
     upload_blob_with_timeout,
     search_client,
@@ -63,10 +64,9 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.environ.get(
     "GOOGLE_APPLICATION_CREDENTIALS"
 )
 
-
 @app.route("/anesthesia")
 def anesthesia():
-    if session["google_id"]:
+    if "google_id" in session:
         doc_ref = user_collection.document(session["google_id"])
         doc_ref.update({"last_channel": "anesthesia"})
 
@@ -75,20 +75,50 @@ def anesthesia():
 
 @app.route("/gynecology")
 def gynecology():
-    if session["google_id"]:
+    if "google_id" in session:
         doc_ref = user_collection.document(session["google_id"])
         doc_ref.update({"last_channel": "gynecology"})
 
     return render_template("gynecology.html")
 
 
+@app.route("/download/<path:bookmark_path>")
+def download_bookmark(bookmark_path):
+    # Assuming bookmark_path is the path to the HTML file in GCS
+    # Download the HTML content from GCS
+    html_content = download_html_from_gcs(bookmark_path)
+
+    # You can also save the HTML content to a temporary file if needed
+    # and then send it as a file to the user
+    # temp_file_path = save_html_to_temp_file(html_content)
+    # return send_file(temp_file_path, as_attachment=True)
+
+    # Alternatively, you can pass the HTML content directly to the template
+    return render_template("display.html", html_content=html_content)
+
+
+
+@app.route("/bookmarks")
+def bookmarks():
+    if "google_id" in session:
+        doc_ref = user_collection.document(session["google_id"])
+        doc = doc_ref.collection("bookmarks")
+        documents = doc.get()
+
+        all_bookmarks = [document.to_dict() for document in documents]
+        print(all_bookmarks)
+        return render_template("bookmark.html", all_bookmarks = all_bookmarks)
+
+    return render_template("login_page.html")
+
+
 @app.route("/")
 def index():
     session["SEARCH_COUNT"] = 0
-    try:
-        Thread(target=make_request, args=(embedding_url,)).start()
-    except:
-        pass
+    # try:
+    #     Thread(target=make_request, args=(embedding_url,)).start()
+    # except:
+    #     pass
 
     if "google_id" in session:
         # User is already logged in, redirect to the main page
@@ -187,6 +217,7 @@ def api1():
 def api2():
     # Access user input from the request
     user_input_text = request.args.get("input")
+    session["user_input_text"] = user_input_text
     if len(user_input_text) < 30:
         user_input_text = get_llm_response(
             user_input_text, specialization="anesthesia", max_output_tokens=40
@@ -202,7 +233,7 @@ def api2():
     else:
         options_list = []
 
-    google_id = session.get("google_id")
+    google_id = session.get("google_id", "")
     if google_id:
         doc_ref = user_collection.document(session["google_id"])
     else:
@@ -315,7 +346,7 @@ def upload():
 def api3():
     # Access user input from the request
     user_input_text = request.args.get("input")
-
+    session["user_input_text"] = user_input_text
     if len(user_input_text) < 30:
         user_input_text = get_llm_response(
             user_input_text, specialization="gynecology", max_output_tokens=40
@@ -367,11 +398,8 @@ def api3():
         if response.status_code == 200:
             embedding = response.json()
         else:
-            logging.info(f"Request failed with status code {response.status_code}")
-            logging.info(
-                response.text
-            )  # Print the error message or details if the request fails
             logging.info(f"No embedding")
+
         if len(options_list) != 0:
             payload = {
                 "vector": embedding[0],
@@ -437,7 +465,46 @@ def save_page():
     upload_blob_with_timeout(bucket_name, source_file_name, destination_blob_name)
     os.remove(source_file_name)
 
-    return redirect(url_for("anesthesia"))
+    return ""
+
+
+@app.route("/save_html", methods=["POST"])
+def save_html():
+    logging.info("Saving page")
+    html_content = request.form["html_content"]
+    source_file_name = f"{page_uuid}.html"
+    with open(source_file_name, "w") as file:
+        file.write(html_content)
+
+    search_count = session.get("SEARCH_COUNT", 0)
+
+    google_id = session.get("google_id", "")
+
+    path = f"bookmark/{page_uuid}/activity/{doc_time}_{search_count}/{source_file_name}"
+
+    if google_id:
+        destination_blob_name = f"{google_id}/{path}"
+    else:
+        return render_template("login_page.html")
+
+    bucket_name = "user_bookmark_html"
+
+    upload_blob_with_timeout(bucket_name, source_file_name, destination_blob_name)
+    os.remove(source_file_name)
+
+    if google_id:
+        doc_ref = user_collection.document(session["google_id"])
+
+        activity = doc_ref.collection("bookmarks")
+        activity = activity.document(doc_time + "_" + str(search_count))
+        activity.set(
+            {
+                "path": destination_blob_name,
+                "input_text": session.get("user_input_text", ""),
+            }
+        )
+
+    return ""
 
 
 if __name__ == "__main__":
