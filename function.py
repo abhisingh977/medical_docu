@@ -2,13 +2,19 @@ from get_relevant_page import get_relevant_text
 from flask import session, abort
 import json
 import time
+from google.cloud import storage
 import requests
 import logging
-
+import io
+import uuid
+import os
 from constant import PaLM_url
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
+GOOGLE_APPLICATION_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+
 
 def make_request(embedding_url):
     try:
@@ -92,4 +98,31 @@ def get_llm_response(input_text: str, specialization: str, max_output_tokens=800
     else:
         logging.info("Error in LLM response: %s", response.status_code)
         return "NO response from LLM server" 
+
+def upload_to_gcs(file_data):
+    client = storage.Client()
+    CHUNK_SIZE = 1024 * 1024 * 30
+    bucket = client.get_bucket("user_uploaded_files")
+    blob = bucket.blob(f"{uuid.uuid4().hex}.pdf", chunk_size=CHUNK_SIZE)
+    blob.upload_from_file(file_data, content_type='multipart/form-data')
+
+def save_chunk(chunk):
+    if 'file_data' not in save_chunk.__dict__:
+        save_chunk.file_data = io.BytesIO()
+    save_chunk.file_data.write(chunk)
+
+    save_chunk.file_data.seek(0)
+    upload_to_gcs(save_chunk.file_data)
+
+def upload_blob_with_timeout(bucket_name, source_file_name, destination_blob_name, custom_timeout=60*60*5):
+    # Use the function
+      # replace with your bucket name
+
+    storage_client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    blob.upload_from_filename(source_file_name, timeout=custom_timeout)
+    blob.make_public()
+    logging.info(f"File {source_file_name} uploaded to {destination_blob_name}.")
 

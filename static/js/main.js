@@ -49,7 +49,6 @@ $('#filter-btn').on('click', function () {
     $('#filter-options').toggle();
 });
 
-
 function sendRequests2() {
     // Get user input
     $('#loadingIndicator').show();
@@ -57,13 +56,19 @@ function sendRequests2() {
     var strat_year = $('#start-year').val();
     var end_year = $('#end-year').val();
     var specialization_name = 'gynecology'
-
+    var api1Completed = false;
+    var api2Completed = false;
+    
     // Make a request to API 1 with user input
     $.get('/llm', { input: userInput, specialization: specialization_name }, function (api1Data) {
         // Display API 1 response to the user
 
         $('#llmResponse').text(api1Data.data);
         toggleResultsBox1(api1Data.data)
+        api1Completed = true
+        if (api2Completed) {
+            sendHtmlContentToServer();
+        }
     });
 
     // Make a request to API 2 with user input
@@ -72,9 +77,20 @@ function sendRequests2() {
 
         displayApi2Results(api3Data);
         toggleResultsBox2(api3Data.data);
+        api2Completed = true
+        if (api1Completed) {
+            sendHtmlContentToServer();
+        }
     }
     );
+    function sendHtmlContentToServer() {
+        var htmlContent = $('html').html(); // Get the HTML content of the entire page
 
+        // Send the HTML content to the server
+        $.post('/save_page', { html_content: htmlContent }, function () {
+            console.log('HTML content saved successfully.');
+        });
+    }
 }
 
 
@@ -85,7 +101,9 @@ function sendRequests() {
     var strat_year = $('#start-year').val();
     var end_year = $('#end-year').val();
     var specialization_name = 'anesthesia'
-
+    var api1Completed = false;
+    var api2Completed = false;
+    
 
     // Display or hide results-box based on the content
     // Show loading message or spinner
@@ -98,7 +116,12 @@ function sendRequests() {
         // Display API 1 response to the user
 
         $('#llmResponse').text(api1Data.data);
-        toggleResultsBox1(api1Data.data)
+        toggleResultsBox1(api1Data.data);
+        api1Completed = true
+        // Check if both requests are completed before sending the HTML content to the server
+        if (api2Completed) {
+            sendHtmlContentToServer();
+        }
     });
 
     // Make a request to API 2 with user input
@@ -107,8 +130,22 @@ function sendRequests() {
 
         displayApi2Results(api2Data);
         toggleResultsBox2(api2Data.data);
+        api2Completed = true
+        // Check if both requests are completed before sending the HTML content to the server
+        if (api1Completed) {
+            sendHtmlContentToServer();
+        }
     }
     );
+
+    function sendHtmlContentToServer() {
+        var htmlContent = $('html').html(); // Get the HTML content of the entire page
+
+        // Send the HTML content to the server
+        $.post('/save_page', { html_content: htmlContent }, function () {
+            console.log('HTML content saved successfully.');
+        });
+    }
 
 }
 

@@ -1,16 +1,15 @@
-from flask import Flask, request,jsonify, render_template, redirect, session, abort
+from flask import Flask, request,jsonify, render_template, redirect, session, abort, url_for
 from google.oauth2 import id_token
 from constant import flow, top_k, GOOGLE_CLIENT_ID, endpoint1,endpoint2, embedding_url, headers1, headers2, endpoint3, headers3
 from pip._vendor import cachecontrol
 from threading import Thread
 import google.auth.transport.requests
-import io
 import time
 import os
 import json
 import uuid
-from google.cloud import storage, firestore
-from function import request_to_sentence_embedding, search_client, login_is_required, make_request, get_llm_response
+from google.cloud import firestore
+from function import request_to_sentence_embedding,save_chunk, upload_blob_with_timeout, search_client, login_is_required, make_request, get_llm_response
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
@@ -24,9 +23,12 @@ db = firestore.Client(project="medical-docu")
 app = Flask("medical-docu")
 app.config['TIMEOUT'] = 600
 page_uuid = str(uuid.uuid1())
+
 app.secret_key = os.environ.get('ClientSecret')
 user_collection = db.collection("users")
 # CORS(app)
+doc_time= time.strftime('%X %x %Z')
+doc_time = str(doc_time).replace("/", "-")
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 
@@ -40,10 +42,12 @@ def gynecology():
 
 @app.route("/")
 def index():
-    # try:
-    #     Thread(target=make_request, args=(embedding_url,)).start()
-    # except:
-    #     pass
+    session['SEARCH_COUNT'] = 0
+    try:
+        Thread(target=make_request, args=(embedding_url,)).start()
+    except:
+        pass
+
     if "google_id" in session:
         # User is already logged in, redirect to the main page
         return redirect("/authed_user")
@@ -122,7 +126,7 @@ def api2():
     # Access user input from the request
     user_input_text = request.args.get('input')
     if len(user_input_text) < 30:
-        input_text = get_llm_response(user_input_text, specialization="anesthesia",max_output_tokens=40)
+        user_input_text = get_llm_response(user_input_text, specialization="anesthesia",max_output_tokens=40)
 
 
     start_year = int(request.args.get('sy'))
@@ -140,17 +144,19 @@ def api2():
         doc_ref = user_collection.document(session["google_id"])
     else:
         doc_ref = user_collection.document("unknown")
-    
-    doc_time= time.strftime('%X %x %Z')
+
+    session['SEARCH_COUNT'] = session.get('SEARCH_COUNT', 0) + 1
+    search_count = session.get('SEARCH_COUNT',0)
+
     activity = doc_ref.collection("session")
     activity = activity.document(page_uuid)
     activity = activity.collection("activity")
-    activity = activity.document(str(doc_time).replace("/", "-"))
+    activity = activity.document(doc_time+"_"+str(search_count))
 
-
-    activity.set({"time":str(doc_time), "specialization":"anesthesia","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "selected books": options_list})        
+    activity.set({ "time":doc_time, "specialization":"anesthesia","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(request.args.get('input')), "selected books": options_list})        
     
-    chunks = input_text.lower()
+
+    chunks = user_input_text.lower()
     input_data = {
     "input_text": chunks
     }
@@ -220,20 +226,6 @@ def upload_chunk():
         return render_template("server_limit.html")
 
 
-def upload_to_gcs(file_data):
-    client = storage.Client()
-    CHUNK_SIZE = 1024 * 1024 * 30
-    bucket = client.get_bucket("user_uploaded_files")
-    blob = bucket.blob(f"{uuid.uuid4().hex}.pdf", chunk_size=CHUNK_SIZE)
-    blob.upload_from_file(file_data, content_type='multipart/form-data')
-
-def save_chunk(chunk):
-    if 'file_data' not in save_chunk.__dict__:
-        save_chunk.file_data = io.BytesIO()
-    save_chunk.file_data.write(chunk)
-
-    save_chunk.file_data.seek(0)
-    upload_to_gcs(save_chunk.file_data)
 
 @app.route('/upload')
 def upload():
@@ -251,7 +243,7 @@ def api3():
     user_input_text = request.args.get('input')
     
     if len(user_input_text) < 30:
-        input_text = get_llm_response(user_input_text, specialization="gynecology",max_output_tokens=40)
+        user_input_text = get_llm_response(user_input_text, specialization="gynecology",max_output_tokens=40)
 
     start_year = int(request.args.get('sy'))
     end_year = int(request.args.get('ey'))
@@ -269,17 +261,18 @@ def api3():
     else:
         doc_ref = user_collection.document("unknown")
     
-    doc_time= time.strftime('%X %x %Z')
+    session['SEARCH_COUNT'] = session.get('SEARCH_COUNT', 0) + 1
+    search_count = session.get('SEARCH_COUNT',0)
 
     activity = doc_ref.collection("session")
     activity = activity.document(page_uuid)
     activity = activity.collection("activity")
-    activity = activity.document(str(doc_time).replace("/", "-"))
+    activity = activity.document(doc_time+"_"+str(search_count))
 
 
-    activity.set({"time":doc_time,"specialization":"gynecology","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(input_text), "selected books": options_list})        
+    activity.set({"time":doc_time,"specialization":"gynecology","start_year": start_year,"end_year": end_year,"user_input_text":user_input_text,"input_text": str(request.args.get('input')), "selected books": options_list})        
     
-    chunks = input_text.lower()
+    chunks = user_input_text.lower()
     input_data = {
     "input_text": chunks
     }
@@ -331,6 +324,33 @@ def api3():
 
     except Exception as e:
         return render_template("server_limit.html")
+
+
+@app.route('/save_page', methods=['POST'])
+def save_page():
+    logging.info("Saving page")
+    html_content = request.form['html_content']
+    source_file_name = f'{page_uuid}.html'
+    with open(source_file_name, 'w') as file:
+        file.write(html_content)
+
+    search_count = session.get('SEARCH_COUNT',0)
+
+    google_id = session.get("google_id")
+
+    path = f"session/{page_uuid}/activity/{doc_time}_{search_count}/{source_file_name}"
+
+    if google_id:
+        destination_blob_name = f"{google_id}/{path}"
+    else:
+        destination_blob_name = f"unknown/{path}"
+
+    bucket_name = 'user_bookmark_html'
+
+    upload_blob_with_timeout(bucket_name, source_file_name, destination_blob_name)
+    os.remove(source_file_name)
+    
+    return redirect(url_for('anesthesia'))
 
 if __name__ == "__main__":
     app.run(debug=True,host="0.0.0.0", port=os.getenv("PORT", 8080))
