@@ -3,7 +3,7 @@ import requests
 from io import BytesIO
 import fitz
 import base64
-import re 
+import re
 
 
 dpi = 90
@@ -17,12 +17,10 @@ def transform_text(input_text):
     return transformed_text
 
 
-def pdf_to_image(filename, page_no,embedd_text,specialization):
-    
+def pdf_to_image(filename, page_no, embedd_text, specialization):
     filename = transform_text(filename)
     path = f"https://storage.googleapis.com/zos_medical_pdfs/{specialization}/books/{filename}/{page_no}.pdf"
     response = requests.get(path)
-
 
     if response.status_code == 200:
         # Read the content into a BytesIO object
@@ -49,23 +47,29 @@ def pdf_to_image(filename, page_no,embedd_text,specialization):
 
 
 def contact(filename, page_no, specialization):
-    filename  = re.sub(r'[^a-zA-Z\s]', '', filename)
+    filename = re.sub(r"[^a-zA-Z\s]", "", filename)
     filename = transform_text(filename)
     page_no = page_no.split("_")[1]
     page_no = str(int(page_no) + 1)
     return f"https://storage.googleapis.com/zos_books/{specialization}/books/{filename}.pdf#page={page_no}"
+
 
 def get_relevant_text(result, specialization):
     result = result[:5]
 
     context = [
         {
-            "pdf_link": contact(x["payload"]["book_name"], x["payload"]["page_no"],specialization),
+            "pdf_link": contact(
+                x["payload"]["book_name"], x["payload"]["page_no"], specialization
+            ),
             "pdf_image": pdf_to_image(
-                x["payload"]["book_name"], x["payload"]["page_no"], x["payload"]["text"],specialization
+                x["payload"]["book_name"],
+                x["payload"]["page_no"],
+                x["payload"]["text"],
+                specialization,
             ),
             "text": x["payload"]["text"],
-            "page_no": str(int(x["payload"]["page_no"].split("_")[1])+1),
+            "page_no": str(int(x["payload"]["page_no"].split("_")[1]) + 1),
             "name": x["payload"]["book_name"],
             "year": x["payload"]["year"],
             "score": x["score"],

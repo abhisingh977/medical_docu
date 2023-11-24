@@ -6,7 +6,10 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-X14CB1KS9Q"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
         gtag('js', new Date());
 
         gtag('config', 'G-X14CB1KS9Q');
@@ -28,8 +31,7 @@
 
         <h1>Medical Document Search</h1>
 
-        <input type="text" id="userInput" name="text" placeholder="Enter your search here..."
-            value="{{ request.form['text'] }}">
+        <input type="text" id="userInput" name="text" placeholder="Enter your search here..." value="{{ request.form['text'] }}">
         <br>
 
         <!-- Filter button -->
@@ -41,8 +43,8 @@
         <button type="submit" id="click" onclick="sendRequests()">Search</button>
 
         <div class="results-box" id="llmResponse"> </div>
-        <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 20px;">Processing your
-            request...</div>
+        <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 20px;">Processing your request...
+        </div>
         <div class="results-box" id="searchResponse"></div>
 
     </div>
