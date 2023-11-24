@@ -164,6 +164,7 @@ def download_html_from_gcs(bookmark_path):
     # Download the HTML content from GCS
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(blob_name)
+
     html_content = blob.download_as_text()
-    os.remove(blob_name)
+    
     return html_content
