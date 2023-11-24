@@ -115,10 +115,10 @@ def bookmarks():
 @app.route("/")
 def index():
     session["SEARCH_COUNT"] = 0
-    # try:
-    #     Thread(target=make_request, args=(embedding_url,)).start()
-    # except:
-    #     pass
+    try:
+        Thread(target=make_request, args=(embedding_url,)).start()
+    except:
+        pass
 
     if "google_id" in session:
         # User is already logged in, redirect to the main page
