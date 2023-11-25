@@ -61,6 +61,7 @@ user_collection = db.collection("users")
 # CORS(app)
 doc_time = time.strftime("%X %x %Z")
 doc_time = str(doc_time).replace("/", "-")
+doc_time = str(doc_time).replace(" ", "-")
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.environ.get(
     "GOOGLE_APPLICATION_CREDENTIALS"

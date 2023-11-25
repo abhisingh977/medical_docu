@@ -51,7 +51,7 @@ $('#filter-btn').on('click', function() {
 
 function sendRequests3() {
     // Get user input
-    // $('#loadingIndicator').show();
+    $('#loadingIndicator').show();
     var userInput = $('#userInput').val();
     var strat_year = $('#start-year').val();
     var end_year = $('#end-year').val();
@@ -73,7 +73,7 @@ function sendRequests3() {
 
     // Make a request to API 2 with user input
     $.get('/search3', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api4Data) {
-        // $('#loadingIndicator').hide();
+        $('#loadingIndicator').hide();
 
         displayApi2Results(api4Data);
         toggleResultsBox2(api4Data.data);
@@ -229,19 +229,6 @@ function saveHtmlContentToServer() {
     });
 }
 
-// document.getElementById("share").addEventListener("click", function() {
-//     // Assuming 'html_content' is the content you want to send to the server
-//     saveHtmlContentToServer();
-// });
-
-// function shareHtmlContentToServer() {
-//     var htmlContent = $('html').html(); // Get the HTML content of the entire page
-
-//     // Send the HTML content to the server
-//     $.post('/share', { html_content: htmlContent }, function() {
-//         console.log('HTML content share successfully.');
-//     });
-// }
 document.getElementById('shareButton').addEventListener('click', function() {
     fetch('/share', {
             method: 'POST',
