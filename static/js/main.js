@@ -82,8 +82,6 @@ function sendRequests2() {
             sendHtmlContentToServer();
         }
     });
-
-
 }
 
 
@@ -96,13 +94,6 @@ function sendRequests() {
     var specialization_name = 'anesthesia'
     var api1Completed = false;
     var api2Completed = false;
-
-
-    // Display or hide results-box based on the content
-    // Show loading message or spinner
-
-    // Display or hide results-box based on the content
-    // Show loading message or spinner
 
     // Make a request to API 1 with user input
     $.get('/llm', { input: userInput, specialization: specialization_name }, function(api1Data) {
@@ -129,9 +120,6 @@ function sendRequests() {
             sendHtmlContentToServer();
         }
     });
-
-
-
 }
 
 function displayApi2Results(api2Data) {
@@ -182,9 +170,6 @@ function toggleResultsBox1(api1Data) {
     }
 }
 
-
-
-
 document.getElementById("book-click").addEventListener("click", function() {
     // Assuming 'html_content' is the content you want to send to the server
     saveHtmlContentToServer();
@@ -207,3 +192,48 @@ function saveHtmlContentToServer() {
         console.log('HTML content saved successfully.');
     });
 }
+
+// document.getElementById("share").addEventListener("click", function() {
+//     // Assuming 'html_content' is the content you want to send to the server
+//     saveHtmlContentToServer();
+// });
+
+// function shareHtmlContentToServer() {
+//     var htmlContent = $('html').html(); // Get the HTML content of the entire page
+
+//     // Send the HTML content to the server
+//     $.post('/share', { html_content: htmlContent }, function() {
+//         console.log('HTML content share successfully.');
+//     });
+// }
+document.getElementById('shareButton').addEventListener('click', function() {
+    // Make an HTTP request to your Flask route
+    fetch('/share', {
+            method: 'POST', // Assuming your Flask route uses POST method
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // Add any necessary body data if required by your Flask route
+            // body: JSON.stringify({ key: 'value' }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Use the data received from the server to update the currentUrl variable
+            var currentUrl = data.link;
+            console.log(currentUrl);
+            // Use the Clipboard API to write text to the clipboard
+            navigator.clipboard.writeText(currentUrl)
+                .then(function() {
+                    // Provide feedback to the user (you can customize this part)
+                    alert('The Link is copied to your clipboard!! Share it with your Friends :', currentUrl);
+                })
+                .catch(function(err) {
+                    console.error('Unable to copy to clipboard', err);
+                    // Handle errors as needed
+                });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Handle errors as needed
+        });
+});
