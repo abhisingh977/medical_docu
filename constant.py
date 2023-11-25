@@ -44,3 +44,10 @@ api_key3 = os.environ.get("api_key3")
 collection_name3 = os.environ.get("collection_name3")
 endpoint3 = f"{url3}/collections/{collection_name3}/points/search"
 headers3 = {"Content-Type": "application/json", "api-key": api_key3}
+
+
+url4 = os.environ.get("url4")
+api_key4 = os.environ.get("api_key4")
+collection_name4 = os.environ.get("collection_name4")
+endpoint4 = f"{url4}/collections/{collection_name4}/points/search"
+headers4 = {"Content-Type": "application/json", "api-key": api_key4}

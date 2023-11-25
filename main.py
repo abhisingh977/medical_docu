@@ -19,6 +19,8 @@ from constant import (
     headers2,
     endpoint3,
     headers3,
+    endpoint4,
+    headers4,
 )
 from pip._vendor import cachecontrol
 from threading import Thread
@@ -81,6 +83,15 @@ def gynecology():
         doc_ref.update({"last_channel": "gynecology"})
 
     return render_template("gynecology.html")
+
+
+@app.route("/pediatric")
+def pediatric():
+    if "google_id" in session:
+        doc_ref = user_collection.document(session["google_id"])
+        doc_ref.update({"last_channel": "pediatric"})
+
+    return render_template("pediatric.html")
 
 
 @app.route("/download/<path:bookmark_path>")
@@ -441,6 +452,104 @@ def api3():
         return render_template("server_limit.html")
 
 
+@app.route("/search3")
+def search3():
+    # Access user input from the request
+    user_input_text = request.args.get("input")
+    session["user_input_text"] = user_input_text
+    # if len(user_input_text) < 30:
+    #     user_input_text = get_llm_response(
+    #         user_input_text, specialization="pediatric", max_output_tokens=40
+    #     )
+
+    start_year = int(request.args.get("sy"))
+    end_year = int(request.args.get("ey"))
+
+    # Parse options parameter into a list
+    options = request.args.get("options")
+    if options:
+        options_list = options.split(",")
+    else:
+        options_list = []
+
+    google_id = session.get("google_id")
+    if google_id:
+        doc_ref = user_collection.document(session["google_id"])
+    else:
+        doc_ref = user_collection.document("unknown")
+
+    session["SEARCH_COUNT"] = session.get("SEARCH_COUNT", 0) + 1
+    search_count = session.get("SEARCH_COUNT", 0)
+
+    activity = doc_ref.collection("session")
+    activity = activity.document(page_uuid)
+    activity = activity.collection("activity")
+    activity = activity.document(doc_time + "_" + str(search_count))
+
+    activity.set(
+        {
+            "time": doc_time,
+            "specialization": "pediatric",
+            "start_year": start_year,
+            "end_year": end_year,
+            "user_input_text": user_input_text,
+            "input_text": str(request.args.get("input")),
+            "selected books": options_list,
+        }
+    )
+
+    chunks = user_input_text.lower()
+    input_data = {"input_text": chunks}
+
+    # try:
+    response = request_to_sentence_embedding(
+        embedding_url + "/" + "get_embedding_from_input/", input_data
+    )
+    if response.status_code == 200:
+        embedding = response.json()
+    else:
+        logging.info(f"No embedding")
+
+    if len(options_list) != 0:
+        payload = {
+            "vector": embedding[0],
+            "limit": 10,
+            "with_payload": True,
+            "filter": {
+                "must": [
+                    {"key": "year", "range": {"gte": start_year, "lte": end_year}},
+                    {"key": "book_name", "match": {"any": options_list}},
+                ]
+            },
+        }
+    else:
+        payload = {
+            "vector": embedding[0],
+            "limit": 10,
+            "with_payload": True,
+            "filter": {
+                "must": [
+                    {"key": "year", "range": {"gte": start_year, "lte": end_year}}
+                ]
+            },
+        }
+
+    result = search_client(
+        endpoint4, payload, headers4, specialization="pediatric"
+    )
+
+    sorted_res = sorted(result, key=lambda x: x["score"], reverse=True)
+    logging.info(f"Total res: {str(len(sorted_res))}")
+
+    # Call API 2 with user input and return the response
+    # Replace the following line with your API 2 call
+    api2_response = {"data": f"{json.dumps(sorted_res)}"}
+
+    return jsonify(api2_response)
+
+    # except Exception as e:
+    #     return render_template("server_limit.html")
+
 @app.route("/save_page", methods=["POST"])
 def save_page():
     logging.info("Saving page")
@@ -531,7 +640,6 @@ def share():
     api_path = {"link": final_path}
 
     return jsonify(api_path)
-
 
 
 if __name__ == "__main__":
