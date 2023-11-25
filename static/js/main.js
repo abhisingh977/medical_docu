@@ -225,7 +225,8 @@ document.getElementById('shareButton').addEventListener('click', function() {
             navigator.clipboard.writeText(currentUrl)
                 .then(function() {
                     // Provide feedback to the user (you can customize this part)
-                    alert('The Link is copied to your clipboard!! Share it with your Friends :', currentUrl);
+                    alert('The Link is copied to your clipboard!! Share it with your Friends :' +
+                        currentUrl);
                 })
                 .catch(function(err) {
                     console.error('Unable to copy to clipboard', err);
