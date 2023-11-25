@@ -243,34 +243,45 @@ function saveHtmlContentToServer() {
 //     });
 // }
 document.getElementById('shareButton').addEventListener('click', function() {
-    // Make an HTTP request to your Flask route
     fetch('/share', {
-            method: 'POST', // Assuming your Flask route uses POST method
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            // Add any necessary body data if required by your Flask route
-            // body: JSON.stringify({ key: 'value' }),
         })
         .then(response => response.json())
         .then(data => {
-            // Use the data received from the server to update the currentUrl variable
             var currentUrl = data.link;
-            console.log(currentUrl);
-            // Use the Clipboard API to write text to the clipboard
-            navigator.clipboard.writeText(currentUrl)
-                .then(function() {
-                    // Provide feedback to the user (you can customize this part)
-                    alert('The Link is copied to your clipboard!! Share it with your Friends :' +
-                        currentUrl);
-                })
-                .catch(function(err) {
-                    console.error('Unable to copy to clipboard', err);
-                    // Handle errors as needed
-                });
+
+            // Check if the Clipboard API is supported
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(currentUrl)
+                    .then(function() {
+
+                        alert('The link is copied to your clipboard! Share it with your friends: ' + currentUrl);
+                    })
+                    .catch(function(err) {
+                        console.error('Unable to copy to clipboard', err);
+                        // Share through WhatsApp if clipboard access is denied
+                        shareViaWhatsApp(currentUrl);
+                    });
+            } else {
+                // Share through WhatsApp if Clipboard API is not supported
+                shareViaWhatsApp(currentUrl);
+            }
         })
         .catch(error => {
             console.error('Error:', error);
             // Handle errors as needed
         });
 });
+
+function shareViaWhatsApp(url) {
+    // Create a WhatsApp share link
+    var whatsappLink = 'whatsapp://send?text=' + encodeURIComponent('Check out this link: ' + url);
+
+    // Open the link in a new window or redirect the user to it
+    window.open(whatsappLink, '_blank');
+    // Alternatively, you can redirect the user to the link directly
+    // window.location.href = whatsappLink;
+}
