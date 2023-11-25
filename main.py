@@ -64,6 +64,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.environ.get(
     "GOOGLE_APPLICATION_CREDENTIALS"
 )
 
+
 @app.route("/anesthesia")
 def anesthesia():
     if "google_id" in session:
@@ -97,7 +98,6 @@ def download_bookmark(bookmark_path):
     return render_template("display.html", html_content=html_content)
 
 
-
 @app.route("/bookmarks")
 def bookmarks():
     if "google_id" in session:
@@ -107,7 +107,7 @@ def bookmarks():
 
         all_bookmarks = [document.to_dict() for document in documents]
         print(all_bookmarks)
-        return render_template("bookmark.html", all_bookmarks = all_bookmarks)
+        return render_template("bookmark.html", all_bookmarks=all_bookmarks)
 
     return render_template("login_page.html")
 
@@ -505,6 +505,33 @@ def save_html():
         )
 
     return ""
+
+
+@app.route("/share", methods=["POST"])
+def share():
+    logging.info("share page")
+    bucket_name = "user_bookmark_html"
+    source_file_name = f"{page_uuid}.html"
+
+    search_count = session.get("SEARCH_COUNT", 0)
+
+    google_id = session.get("google_id")
+
+    path = f"session/{page_uuid}/activity/{doc_time}_{search_count}/{source_file_name}"
+
+    if google_id:
+        destination_blob_name = f"{google_id}/{path}"
+    else:
+        destination_blob_name = f"unknown/{path}"
+
+    final_path = (
+        f"https://medical-docu-svgzkfaqoa-uc.a.run.app/download/{destination_blob_name}"
+    )
+
+    api_path = {"link": final_path}
+
+    return jsonify(api_path)
+
 
 
 if __name__ == "__main__":
