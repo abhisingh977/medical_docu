@@ -121,6 +121,20 @@ li {
     color: #fff;
     position: relative;
     top: 13px;
+    left: 10px;
+    border: none;
+    padding: 5px 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    /* Adjust this value as needed */
+}
+
+#home {
+    background-color: #007bff;
+    color: #fff;
+    position: relative;
+    top: 13px;
     left: 1px;
     border: none;
     padding: 5px 5px;

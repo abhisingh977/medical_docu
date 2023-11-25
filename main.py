@@ -151,6 +151,9 @@ def index():
 def no_login():
     return render_template("channel.html")
 
+@app.route("/home")
+def home():
+    return render_template("channel.html")
 
 @app.route("/authed_user")
 @login_is_required
