@@ -498,54 +498,54 @@ def search3():
     chunks = user_input_text.lower()
     input_data = {"input_text": chunks}
 
-    # try:
-    response = request_to_sentence_embedding(
-        embedding_url + "/" + "get_embedding_from_input/", input_data
-    )
-    if response.status_code == 200:
-        embedding = response.json()
-    else:
-        logging.info(f"No embedding")
+    try:
+        response = request_to_sentence_embedding(
+            embedding_url + "/" + "get_embedding_from_input/", input_data
+        )
+        if response.status_code == 200:
+            embedding = response.json()
+        else:
+            logging.info(f"No embedding")
 
-    if len(options_list) != 0:
-        payload = {
-            "vector": embedding[0],
-            "limit": 10,
-            "with_payload": True,
-            "filter": {
-                "must": [
-                    {"key": "year", "range": {"gte": start_year, "lte": end_year}},
-                    {"key": "book_name", "match": {"any": options_list}},
-                ]
-            },
-        }
-    else:
-        payload = {
-            "vector": embedding[0],
-            "limit": 10,
-            "with_payload": True,
-            "filter": {
-                "must": [
-                    {"key": "year", "range": {"gte": start_year, "lte": end_year}}
-                ]
-            },
-        }
+        if len(options_list) != 0:
+            payload = {
+                "vector": embedding[0],
+                "limit": 10,
+                "with_payload": True,
+                "filter": {
+                    "must": [
+                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
+                        {"key": "book_name", "match": {"any": options_list}},
+                    ]
+                },
+            }
+        else:
+            payload = {
+                "vector": embedding[0],
+                "limit": 10,
+                "with_payload": True,
+                "filter": {
+                    "must": [
+                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
+                    ]
+                },
+            }
 
-    result = search_client(
-        endpoint4, payload, headers4, specialization="pediatric"
-    )
+        result = search_client(
+            endpoint4, payload, headers4, specialization="pediatric"
+        )
 
-    sorted_res = sorted(result, key=lambda x: x["score"], reverse=True)
-    logging.info(f"Total res: {str(len(sorted_res))}")
+        sorted_res = sorted(result, key=lambda x: x["score"], reverse=True)
+        logging.info(f"Total res: {str(len(sorted_res))}")
 
-    # Call API 2 with user input and return the response
-    # Replace the following line with your API 2 call
-    api2_response = {"data": f"{json.dumps(sorted_res)}"}
+        # Call API 2 with user input and return the response
+        # Replace the following line with your API 2 call
+        api2_response = {"data": f"{json.dumps(sorted_res)}"}
 
-    return jsonify(api2_response)
+        return jsonify(api2_response)
 
-    # except Exception as e:
-    #     return render_template("server_limit.html")
+    except Exception as e:
+        return render_template("server_limit.html")
 
 @app.route("/save_page", methods=["POST"])
 def save_page():
