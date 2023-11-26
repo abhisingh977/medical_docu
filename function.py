@@ -2,25 +2,13 @@ from get_relevant_page import get_relevant_text
 from flask import session, abort
 import json
 import time
-from flask import request
 from google.cloud import storage
 import requests
 import logging
 import io
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 import os
 from constant import PaLM_url
-from constant import (
-    endpoint1,
-    endpoint2,
-    headers1,
-    headers2,
-    endpoint3,
-    headers3,
-    endpoint4,
-    headers4,
-)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -178,51 +166,5 @@ def download_html_from_gcs(bookmark_path):
     blob = bucket.blob(blob_name)
 
     html_content = blob.download_as_text()
-
+    
     return html_content
-
-
-def search_client_w_specialization(specialization, payload):
-    if specialization == "anesthesia":
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future1 = executor.submit(
-                search_client,
-                endpoint1,
-                payload,
-                headers1,
-                specialization=specialization,
-            )
-            future2 = executor.submit(
-                search_client,
-                endpoint2,
-                payload,
-                headers2,
-                specialization=specialization,
-            )
-
-        result = future1.result()
-        result2 = future2.result()
-        result.extend(result2)
-
-    elif specialization == "gynecology":
-        result = search_client(
-            endpoint3, payload, headers3, specialization="gynecology"
-        )
-
-    elif specialization == "pediatric":
-        result = search_client(endpoint4, payload, headers4, specialization="pediatric")
-    return result
-
-
-def get_html_content(page_uuid):
-    html_content = request.form["html_content"]
-    source_file_name = f"{page_uuid}.html"
-
-    with open(source_file_name, "w") as file:
-        file.write(html_content)
-
-    search_count = session.get("SEARCH_COUNT", 0)
-
-    google_id = session.get("google_id", "")
-
-    return google_id, search_count, source_file_name
