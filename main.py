@@ -12,15 +12,7 @@ from constant import (
     flow,
     top_k,
     GOOGLE_CLIENT_ID,
-    endpoint1,
-    endpoint2,
     embedding_url,
-    headers1,
-    headers2,
-    endpoint3,
-    headers3,
-    endpoint4,
-    headers4,
 )
 from pip._vendor import cachecontrol
 from threading import Thread
@@ -35,13 +27,13 @@ from function import (
     download_html_from_gcs,
     save_chunk,
     upload_blob_with_timeout,
-    search_client,
+    search_client_w_specialization,
     login_is_required,
     make_request,
     get_llm_response,
+    get_html_content,
 )
 import requests
-from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 import logging
 
@@ -81,7 +73,7 @@ def channel(channel):
 def download_bookmark(bookmark_path):
     html_content = download_html_from_gcs(bookmark_path)
 
-    return render_template("display.html", html_content=html_content)
+    return render_template("feature/share.html", html_content=html_content)
 
 
 @app.route("/bookmarks")
@@ -92,7 +84,7 @@ def bookmarks():
         documents = doc.get()
 
         all_bookmarks = [document.to_dict() for document in documents]
-        return render_template("bookmark.html", all_bookmarks=all_bookmarks)
+        return render_template("feature/bookmark.html", all_bookmarks=all_bookmarks)
 
     return render_template("login_page.html")
 
@@ -217,6 +209,9 @@ def api2():
     options = request.args.get("options")
     if options:
         options_list = options.split(",")
+    elif specialization == "pediatric":
+        # if specialization is pediatric and there is no options specified we set defalut value.
+        options_list = ["Meharban Singh Drug Dosages in Children"]
     else:
         options_list = []
 
@@ -285,37 +280,7 @@ def api2():
                     ]
                 },
             }
-        print(specialization)
-        if specialization == "anesthesia":
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                future1 = executor.submit(
-                    search_client,
-                    endpoint1,
-                    payload,
-                    headers1,
-                    specialization=specialization,
-                )
-                future2 = executor.submit(
-                    search_client,
-                    endpoint2,
-                    payload,
-                    headers2,
-                    specialization=specialization,
-                )
-
-            result = future1.result()
-            result2 = future2.result()
-            result.extend(result2)
-
-        elif specialization == "gynecology":
-            result = search_client(
-                endpoint3, payload, headers3, specialization="gynecology"
-            )
-
-        elif specialization == "pediatric":
-            result = search_client(
-                endpoint4, payload, headers4, specialization="pediatric"
-            )
+        result = search_client_w_specialization(specialization, payload)
 
         sorted_res = sorted(result, key=lambda x: x["score"], reverse=True)
         logging.info(f"Total res: {str(len(sorted_res))}")
@@ -333,16 +298,16 @@ def upload_chunk():
     try:
         chunk = request.files["document"].read()
         save_chunk(chunk)
-        return render_template("pdf_uploaded.html")
+        return render_template("feature/pdf_uploaded.html")
     except Exception as e:
-        return render_template("server_limit.html")
+        return render_template("feature/server_limit.html")
 
 
 @app.route("/upload")
 def upload():
     if "google_id" in session:
         # User is already logged in, redirect to the main page
-        return render_template("upload.html")
+        return render_template("feature/upload.html")
 
     return render_template("login_page.html")
 
@@ -350,14 +315,8 @@ def upload():
 @app.route("/save_page", methods=["POST"])
 def save_page():
     logging.info("Saving page")
-    html_content = request.form["html_content"]
-    source_file_name = f"{page_uuid}.html"
-    with open(source_file_name, "w") as file:
-        file.write(html_content)
 
-    search_count = session.get("SEARCH_COUNT", 0)
-
-    google_id = session.get("google_id")
+    google_id, search_count, source_file_name = get_html_content(page_uuid)
 
     path = f"session/{page_uuid}/activity/{doc_time}_{search_count}/{source_file_name}"
 
@@ -377,26 +336,20 @@ def save_page():
 @app.route("/save_html", methods=["POST"])
 def save_html():
     logging.info("Saving page")
-    html_content = request.form["html_content"]
-    source_file_name = f"{page_uuid}.html"
-    with open(source_file_name, "w") as file:
-        file.write(html_content)
 
-    search_count = session.get("SEARCH_COUNT", 0)
-
-    google_id = session.get("google_id", "")
+    google_id, search_count, source_file_name = get_html_content(page_uuid)
 
     path = f"bookmark/{page_uuid}/activity/{doc_time}_{search_count}/{source_file_name}"
 
     if google_id:
         destination_blob_name = f"{google_id}/{path}"
     else:
+        # If user is not logged ask route them to login page.
         return render_template("login_page.html")
 
     bucket_name = "user_bookmark_html"
 
     upload_blob_with_timeout(bucket_name, source_file_name, destination_blob_name)
-    os.remove(source_file_name)
 
     if google_id:
         doc_ref = user_collection.document(session["google_id"])
@@ -409,6 +362,8 @@ def save_html():
                 "input_text": session.get("user_input_text", ""),
             }
         )
+
+    os.remove(source_file_name)
 
     return ""
 

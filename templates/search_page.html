@@ -39,7 +39,7 @@
         <button id="filter-btn"> Add Filters</button>
         <br><br>
         <div class="filter-container">
-            {% include channel + '_filter.html' %}
+            {% include 'filter/'+channel + '_filter.html' %}
         </div>
         <button type="submit" id="click" onclick="sendRequests('{{ channel }}')">Search</button>
         <button type="submit" id="book-click" onclick="save()">Bookmark</button>
