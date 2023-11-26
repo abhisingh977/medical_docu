@@ -15,7 +15,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anesthesia Document Search</title>
+    <title>{{ channel }} Document Search</title>
     <link rel="stylesheet" type="text/css" href="/static/css/main.css">
 
 </head>
@@ -24,12 +24,13 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
     <div class="container">
-        <a href="{{ url_for('upload')}}" id="upload_but">Upload Your File</a>
+        <a href="{{ url_for('home')}}" id="home">Home</a>
+        <a href="{{ url_for('upload')}}" id="upload_but">Upload</a>
         <a href="{{ url_for('bookmarks')}}" id="bookmark">Bookmarks</a>
         <a href="{{ url_for('logout')}}" id="logout">Logout</a>
 
 
-        <h1>Anesthesia Document Search</h1>
+        <h1>{{ channel }} Document Search</h1>
 
         <input type="text" id="userInput" name="text" placeholder="Enter your search here..." value="{{ request.form['text'] }}">
         <br>
@@ -38,9 +39,9 @@
         <button id="filter-btn"> Add Filters</button>
         <br><br>
         <div class="filter-container">
-            {% include 'anesthesia_filter.html' %}
+            {% include channel + '_filter.html' %}
         </div>
-        <button type="submit" id="click" onclick="sendRequests()">Search</button>
+        <button type="submit" id="click" onclick="sendRequests('{{ channel }}')">Search</button>
         <button type="submit" id="book-click" onclick="save()">Bookmark</button>
         <button id="shareButton">Share</button>
         <div class="results-box" id="llmResponse"> </div>

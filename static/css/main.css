@@ -121,7 +121,7 @@ li {
     color: #fff;
     position: relative;
     top: 13px;
-    left: 10px;
+    left: 5px;
     border: none;
     padding: 5px 5px;
     border-radius: 5px;
@@ -135,7 +135,7 @@ li {
     color: #fff;
     position: relative;
     top: 13px;
-    left: 1px;
+    left: 0px;
     border: none;
     padding: 5px 5px;
     border-radius: 5px;
@@ -175,7 +175,7 @@ li {
     color: #fff;
     position: relative;
     top: 13px;
-    left: 5px;
+    left: 10px;
     border: none;
     padding: 5px 5px;
     border-radius: 5px;
