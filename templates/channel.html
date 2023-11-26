@@ -57,9 +57,9 @@
     <h1>Please Choose a Channel</h1>
 
     <div class="button-container">
-        <a href="{{ url_for('anesthesia')}}" class="button">Anesthesia</a>
-        <a href="{{ url_for('gynecology')}}" class="button">Gynecology</a>
-        <a href="{{ url_for('pediatric')}}" class="button">Pediatric</a>
+        <a href="{{ url_for('channel', channel='anesthesia')}}" class="button">Anesthesia</a>
+        <a href="{{ url_for('channel', channel='gynecology')}}" class="button">Gynecology</a>
+        <a href="{{ url_for('channel', channel='pediatric')}}" class="button">Pediatric</a>
     </div>
 </body>
 
