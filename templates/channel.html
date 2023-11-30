@@ -49,6 +49,20 @@
         .button:hover {
             background-color: #0056b3;
         }
+        /* Adjustments for smaller screens */
+        
+        @media (max-width: 768px) {
+            .button-container {
+                flex-direction: column;
+                /* Stack buttons vertically on smaller screens */
+                align-items: center;
+                /* Center items along the cross-axis */
+            }
+            .button {
+                margin: 10px 0;
+                /* Add margin to separate buttons vertically */
+            }
+        }
     </style>
 </head>
 
@@ -58,8 +72,11 @@
 
     <div class="button-container">
         <a href="{{ url_for('anesthesia')}}" class="button">Anesthesia</a>
+        <a href="{{ url_for('critical_care')}}" class="button">Critical Care</a>
+        <a href="{{ url_for('medicine')}}" class="button">Medicine</a>
         <a href="{{ url_for('gynecology')}}" class="button">Gynecology</a>
         <a href="{{ url_for('pediatric')}}" class="button">Pediatric</a>
+
     </div>
 </body>
 
