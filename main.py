@@ -83,6 +83,21 @@ def gynecology():
 
     return render_template("gynecology.html")
 
+@app.route("/critical_care")
+def critical_care():
+    if "google_id" in session:
+        doc_ref = user_collection.document(session["google_id"])
+        doc_ref.update({"last_channel": "critical_care"})
+
+    return render_template("critical_care.html")
+
+@app.route("/medicine")
+def medicine():
+    if "google_id" in session:
+        doc_ref = user_collection.document(session["google_id"])
+        doc_ref.update({"last_channel": "medicine"})
+
+    return render_template("medicine.html")
 
 @app.route("/pediatric")
 def pediatric():
@@ -452,10 +467,6 @@ def search3():
     # Access user input from the request
     user_input_text = request.args.get("input")
     session["user_input_text"] = user_input_text
-    # if len(user_input_text) < 30:
-    #     user_input_text = get_llm_response(
-    #         user_input_text, specialization="pediatric", max_output_tokens=40
-    #     )
 
     start_year = int(request.args.get("sy"))
     end_year = int(request.args.get("ey"))
@@ -638,6 +649,225 @@ def share():
 
     return jsonify(api_path)
 
+
+@app.route("/search5")
+def api5():
+    # Access user input from the request
+    user_input_text = request.args.get("input")
+    session["user_input_text"] = user_input_text
+    if len(user_input_text) < 15:
+        user_input_text = get_llm_response(
+            user_input_text, specialization="critical_care", max_output_tokens=40
+        )
+
+    start_year = int(request.args.get("sy"))
+    end_year = int(request.args.get("ey"))
+
+    # Parse options parameter into a list
+    options = request.args.get("options")
+    if options:
+        options_list = options.split(",")
+    else:
+        options_list = ["Hagberg and Benumof ’s AIRWAY MANAGEMENT", "Hung's DIFFICULT AND FAILED AIRWAY MANAGEMENT", "Irwin and Rippe’s Intensive Care Medicine","Pharmacology for Anaesthesia and Intensive Care", "PILBEAM’S Mechanical Ventilation Physiological and Clinical Applications" ]
+
+    google_id = session.get("google_id", "")
+    if google_id:
+        doc_ref = user_collection.document(session["google_id"])
+    else:
+        doc_ref = user_collection.document("unknown")
+
+    session["SEARCH_COUNT"] = session.get("SEARCH_COUNT", 0) + 1
+    search_count = session.get("SEARCH_COUNT", 0)
+
+    activity = doc_ref.collection("session")
+    activity = activity.document(page_uuid)
+    activity = activity.collection("activity")
+    activity = activity.document(doc_time + "_" + str(search_count))
+
+    activity.set(
+        {
+            "time": doc_time,
+            "specialization": "critical_care",
+            "start_year": start_year,
+            "end_year": end_year,
+            "user_input_text": user_input_text,
+            "input_text": str(request.args.get("input")),
+            "selected books": options_list,
+        }
+    )
+
+    chunks = user_input_text.lower()
+    input_data = {"input_text": chunks}
+
+    try:
+        response = request_to_sentence_embedding(
+            embedding_url + "/" + "get_embedding_from_input/", input_data
+        )
+        if response.status_code == 200:
+            embedding = response.json()
+        else:
+            logging.info(f"Request failed with status code {response.status_code}")
+            logging.info(
+                response.text
+            )  # Print the error message or details if the request fails
+            logging.info(f"No embedding")
+        if len(options_list) != 0:
+            payload = {
+                "vector": embedding[0],
+                "limit": top_k,
+                "with_payload": True,
+                "filter": {
+                    "must": [
+                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
+                        {"key": "book_name", "match": {"any": options_list}},
+                    ]
+                },
+            }
+        else:
+            payload = {
+                "vector": embedding[0],
+                "limit": top_k,
+                "with_payload": True,
+                "filter": {
+                    "must": [
+                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
+                    ]
+                },
+            }
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future1 = executor.submit(
+                search_client, endpoint1, payload, headers1, specialization="anesthesia"
+            )
+            future2 = executor.submit(
+                search_client, endpoint2, payload, headers2, specialization="anesthesia"
+            )
+
+        result1 = future1.result()
+        result2 = future2.result()
+        result1.extend(result2)
+
+        sorted_res = sorted(result1, key=lambda x: x["score"], reverse=True)
+        logging.info(f"Total res: {str(len(sorted_res))}")
+
+        # Call API 2 with user input and return the response
+        # Replace the following line with your API 2 call
+        api2_response = {"data": f"{json.dumps(sorted_res)}"}
+
+        return jsonify(api2_response)
+
+    except Exception as e:
+        return render_template("server_limit.html")
+
+
+@app.route("/search6")
+def api6():
+    # Access user input from the request
+    user_input_text = request.args.get("input")
+    session["user_input_text"] = user_input_text
+    if len(user_input_text) < 15:
+        user_input_text = get_llm_response(
+            user_input_text, specialization="medicine", max_output_tokens=40
+        )
+
+    start_year = int(request.args.get("sy"))
+    end_year = int(request.args.get("ey"))
+
+    # Parse options parameter into a list
+    options = request.args.get("options")
+    if options:
+        options_list = options.split(",")
+    else:
+        options_list = ["HUTCHISON’S CLINICAL METHODS", "Macleod’s Clinical Examinatio", "PRINCIPLES OF INTERNAL MEDICINE","Pharmacology for Anaesthesia and Intensive Care", "The ECG Made Easy" ]
+
+    google_id = session.get("google_id", "")
+    if google_id:
+        doc_ref = user_collection.document(session["google_id"])
+    else:
+        doc_ref = user_collection.document("unknown")
+
+    session["SEARCH_COUNT"] = session.get("SEARCH_COUNT", 0) + 1
+    search_count = session.get("SEARCH_COUNT", 0)
+
+    activity = doc_ref.collection("session")
+    activity = activity.document(page_uuid)
+    activity = activity.collection("activity")
+    activity = activity.document(doc_time + "_" + str(search_count))
+
+    activity.set(
+        {
+            "time": doc_time,
+            "specialization": "medicine",
+            "start_year": start_year,
+            "end_year": end_year,
+            "user_input_text": user_input_text,
+            "input_text": str(request.args.get("input")),
+            "selected books": options_list,
+        }
+    )
+
+    chunks = user_input_text.lower()
+    input_data = {"input_text": chunks}
+
+    try:
+        response = request_to_sentence_embedding(
+            embedding_url + "/" + "get_embedding_from_input/", input_data
+        )
+        if response.status_code == 200:
+            embedding = response.json()
+        else:
+            logging.info(f"Request failed with status code {response.status_code}")
+            logging.info(
+                response.text
+            )  # Print the error message or details if the request fails
+            logging.info(f"No embedding")
+        if len(options_list) != 0:
+            payload = {
+                "vector": embedding[0],
+                "limit": top_k,
+                "with_payload": True,
+                "filter": {
+                    "must": [
+                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
+                        {"key": "book_name", "match": {"any": options_list}},
+                    ]
+                },
+            }
+        else:
+            payload = {
+                "vector": embedding[0],
+                "limit": top_k,
+                "with_payload": True,
+                "filter": {
+                    "must": [
+                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
+                    ]
+                },
+            }
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future1 = executor.submit(
+                search_client, endpoint1, payload, headers1, specialization="anesthesia"
+            )
+            future2 = executor.submit(
+                search_client, endpoint2, payload, headers2, specialization="anesthesia"
+            )
+
+        result1 = future1.result()
+        result2 = future2.result()
+        result1.extend(result2)
+
+        sorted_res = sorted(result1, key=lambda x: x["score"], reverse=True)
+        logging.info(f"Total res: {str(len(sorted_res))}")
+
+        # Call API 2 with user input and return the response
+        # Replace the following line with your API 2 call
+        api2_response = {"data": f"{json.dumps(sorted_res)}"}
+
+        return jsonify(api2_response)
+
+    except Exception as e:
+        return render_template("server_limit.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=os.getenv("PORT", 8080))
