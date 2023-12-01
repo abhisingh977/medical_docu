@@ -49,85 +49,13 @@ $('#filter-btn').on('click', function() {
     $('#filter-options').toggle();
 });
 
-function sendRequests3() {
+
+function sendRequests(specialization_name) {
     // Get user input
     $('#loadingIndicator').show();
     var userInput = $('#userInput').val();
     var strat_year = $('#start-year').val();
     var end_year = $('#end-year').val();
-    var specialization_name = 'pediatric'
-    var api1Completed = false;
-    var api2Completed = false;
-
-    // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput, specialization: specialization_name }, function(api1Data) {
-        // Display API 1 response to the user
-
-        $('#llmResponse').text(api1Data.data);
-        toggleResultsBox1(api1Data.data)
-        api1Completed = true
-        if (api2Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-
-    // Make a request to API 2 with user input
-    $.get('/search3', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api4Data) {
-        $('#loadingIndicator').hide();
-
-        displayApi2Results(api4Data);
-        toggleResultsBox2(api4Data.data);
-        api2Completed = true
-        if (api1Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-}
-
-
-function sendRequests2() {
-    // Get user input
-    $('#loadingIndicator').show();
-    var userInput = $('#userInput').val();
-    var strat_year = $('#start-year').val();
-    var end_year = $('#end-year').val();
-    var specialization_name = 'gynecology'
-    var api1Completed = false;
-    var api2Completed = false;
-
-    // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput, specialization: specialization_name }, function(api1Data) {
-        // Display API 1 response to the user
-
-        $('#llmResponse').text(api1Data.data);
-        toggleResultsBox1(api1Data.data)
-        api1Completed = true
-        if (api2Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-
-    // Make a request to API 2 with user input
-    $.get('/search2', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api3Data) {
-        $('#loadingIndicator').hide();
-
-        displayApi2Results(api3Data);
-        toggleResultsBox2(api3Data.data);
-        api2Completed = true
-        if (api1Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-}
-
-
-function sendRequests() {
-    // Get user input
-    $('#loadingIndicator').show();
-    var userInput = $('#userInput').val();
-    var strat_year = $('#start-year').val();
-    var end_year = $('#end-year').val();
-    var specialization_name = 'anesthesia'
     var api1Completed = false;
     var api2Completed = false;
 
@@ -145,7 +73,7 @@ function sendRequests() {
     });
 
     // Make a request to API 2 with user input
-    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api2Data) {
+    $.get('/search', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(','), specialization: specialization_name }, function(api2Data) {
         $('#loadingIndicator').hide();
 
         displayApi2Results(api2Data);
@@ -159,79 +87,6 @@ function sendRequests() {
 }
 
 
-function sendRequests5() {
-    // Get user input
-    $('#loadingIndicator').show();
-    var userInput = $('#userInput').val();
-    var strat_year = $('#start-year').val();
-    var end_year = $('#end-year').val();
-    var specialization_name = 'critical_care'
-    var api1Completed = false;
-    var api2Completed = false;
-
-    // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput, specialization: specialization_name }, function(api1Data) {
-        // Display API 1 response to the user
-
-        $('#llmResponse').text(api1Data.data);
-        toggleResultsBox1(api1Data.data);
-        api1Completed = true
-            // Check if both requests are completed before sending the HTML content to the server
-        if (api2Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-
-    // Make a request to API 2 with user input
-    $.get('/search5', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api2Data) {
-        $('#loadingIndicator').hide();
-
-        displayApi2Results(api2Data);
-        toggleResultsBox2(api2Data.data);
-        api2Completed = true
-            // Check if both requests are completed before sending the HTML content to the server
-        if (api1Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-}
-
-function sendRequests6() {
-    // Get user input
-    $('#loadingIndicator').show();
-    var userInput = $('#userInput').val();
-    var strat_year = $('#start-year').val();
-    var end_year = $('#end-year').val();
-    var specialization_name = 'medicine'
-    var api1Completed = false;
-    var api2Completed = false;
-
-    // Make a request to API 1 with user input
-    $.get('/llm', { input: userInput, specialization: specialization_name }, function(api1Data) {
-        // Display API 1 response to the user
-
-        $('#llmResponse').text(api1Data.data);
-        toggleResultsBox1(api1Data.data);
-        api1Completed = true
-            // Check if both requests are completed before sending the HTML content to the server
-        if (api2Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-
-    // Make a request to API 2 with user input
-    $.get('/search6', { input: userInput, sy: strat_year, ey: end_year, options: selectedOptions.join(',') }, function(api2Data) {
-        $('#loadingIndicator').hide();
-
-        displayApi2Results(api2Data);
-        toggleResultsBox2(api2Data.data);
-        api2Completed = true
-            // Check if both requests are completed before sending the HTML content to the server
-        if (api1Completed) {
-            sendHtmlContentToServer();
-        }
-    });
-}
 
 function displayApi2Results(api2Data) {
     // Parse the JSON string in the 'data' field

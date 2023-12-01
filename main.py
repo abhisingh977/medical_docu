@@ -239,10 +239,7 @@ def api2():
     # Access user input from the request
     user_input_text = request.args.get("input")
     session["user_input_text"] = user_input_text
-    if len(user_input_text) < 30:
-        user_input_text = get_llm_response(
-            user_input_text, specialization="anesthesia", max_output_tokens=40
-        )
+    specialization = str(request.args.get("specialization"))
 
     start_year = int(request.args.get("sy"))
     end_year = int(request.args.get("ey"))
@@ -252,8 +249,23 @@ def api2():
     if options:
         options_list = options.split(",")
     else:
-        options_list = []
-
+        if  specialization == "medicine":
+            options_list = ["HUTCHISON’S CLINICAL METHODS", "Macleod’s Clinical Examinatio",
+                             "PRINCIPLES OF INTERNAL MEDICINE","Pharmacology for Anaesthesia and Intensive Care", 
+                             "The ECG Made Easy" ]
+            
+        elif specialization == "critical_care":
+            options_list = ["Hagberg and Benumof ’s AIRWAY MANAGEMENT",
+                             "Hung's DIFFICULT AND FAILED AIRWAY MANAGEMENT", "Irwin and Rippe’s Intensive Care Medicine",
+                             "Pharmacology for Anaesthesia and Intensive Care", 
+                             "PILBEAM’S Mechanical Ventilation Physiological and Clinical Applications" ]
+            
+        elif specialization == "pediatric":
+            options_list = ['Meharban Singh Drug Dosages in Children']
+        else:
+            options_list = []
+    print("options_list")
+    print(options_list)
     google_id = session.get("google_id", "")
     if google_id:
         doc_ref = user_collection.document(session["google_id"])
@@ -265,83 +277,95 @@ def api2():
 
     activity = doc_ref.collection("session")
     activity = activity.document(page_uuid)
+    activity.set({"data":"data"})
     activity = activity.collection("activity")
     activity = activity.document(doc_time + "_" + str(search_count))
 
     activity.set(
         {
             "time": doc_time,
-            "specialization": "anesthesia",
+            "specialization": specialization,
             "start_year": start_year,
             "end_year": end_year,
-            "user_input_text": user_input_text,
             "input_text": str(request.args.get("input")),
             "selected books": options_list,
+            "search": search_count
         }
     )
 
     chunks = user_input_text.lower()
     input_data = {"input_text": chunks}
 
-    try:
-        response = request_to_sentence_embedding(
-            embedding_url + "/" + "get_embedding_from_input/", input_data
-        )
-        if response.status_code == 200:
-            embedding = response.json()
-        else:
-            logging.info(f"Request failed with status code {response.status_code}")
-            logging.info(
-                response.text
-            )  # Print the error message or details if the request fails
-            logging.info(f"No embedding")
-        if len(options_list) != 0:
-            payload = {
-                "vector": embedding[0],
-                "limit": top_k,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
-                        {"key": "book_name", "match": {"any": options_list}},
-                    ]
-                },
-            }
-        else:
-            payload = {
-                "vector": embedding[0],
-                "limit": top_k,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
-                    ]
-                },
-            }
-
+    # try:
+    response = request_to_sentence_embedding(
+        embedding_url + "/" + "get_embedding_from_input/", input_data
+    )
+    if response.status_code == 200:
+        embedding = response.json()
+    else:
+        logging.info(f"Request failed with status code {response.status_code}")
+        logging.info(
+            response.text
+        )  # Print the error message or details if the request fails
+        logging.info(f"No embedding")
+    if len(options_list) != 0:
+        payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {
+                "must": [
+                    {"key": "year", "range": {"gte": start_year, "lte": end_year}},
+                    {"key": "book_name", "match": {"any": options_list}},
+                ]
+            },
+        }
+    else:
+        payload = {
+            "vector": embedding[0],
+            "limit": top_k,
+            "with_payload": True,
+            "filter": {
+                "must": [
+                    {"key": "year", "range": {"gte": start_year, "lte": end_year}}
+                ]
+            },
+        }
+    if specialization == "anesthesia" or specialization == "critical_care" or specialization == "medicine":
         with ThreadPoolExecutor(max_workers=2) as executor:
             future1 = executor.submit(
                 search_client, endpoint1, payload, headers1, specialization="anesthesia"
             )
             future2 = executor.submit(
                 search_client, endpoint2, payload, headers2, specialization="anesthesia"
-            )
+                    )
 
-        result1 = future1.result()
-        result2 = future2.result()
-        result1.extend(result2)
+            result = future1.result()
+            result2 = future2.result()
+            result.extend(result2)
+    elif specialization == "pediatric":
 
-        sorted_res = sorted(result1, key=lambda x: x["score"], reverse=True)
-        logging.info(f"Total res: {str(len(sorted_res))}")
+        result = search_client(
+        endpoint4, payload, headers4, specialization="pediatric"
+        )
+    elif specialization == "gynecology":
 
-        # Call API 2 with user input and return the response
-        # Replace the following line with your API 2 call
-        api2_response = {"data": f"{json.dumps(sorted_res)}"}
+        result = search_client(
+        endpoint3, payload, headers3, specialization="gynecology"
+        )
 
-        return jsonify(api2_response)
+    sorted_res = sorted(result, key=lambda x: x["score"], reverse=True)
+    logging.info(f"Total res: {str(len(sorted_res))}")
 
-    except Exception as e:
-        return render_template("server_limit.html")
+    # Call API 2 with user input and return the response
+    # Replace the following line with your API 2 call
+    api2_response = {"data": f"{json.dumps(sorted_res)}"}
+
+    return jsonify(api2_response)
+
+    # except Exception as e:
+
+    #     return render_template("server_limit.html")
 
 
 @app.route("/upload_chunk", methods=["POST"])
@@ -363,200 +387,6 @@ def upload():
     return render_template("login_page.html")
 
 
-@app.route("/search2")
-def api3():
-    # Access user input from the request
-    user_input_text = request.args.get("input")
-    session["user_input_text"] = user_input_text
-    if len(user_input_text) < 30:
-        user_input_text = get_llm_response(
-            user_input_text, specialization="gynecology", max_output_tokens=40
-        )
-
-    start_year = int(request.args.get("sy"))
-    end_year = int(request.args.get("ey"))
-
-    # Parse options parameter into a list
-    options = request.args.get("options")
-    if options:
-        options_list = options.split(",")
-    else:
-        options_list = []
-
-    google_id = session.get("google_id")
-    if google_id:
-        doc_ref = user_collection.document(session["google_id"])
-    else:
-        doc_ref = user_collection.document("unknown")
-
-    session["SEARCH_COUNT"] = session.get("SEARCH_COUNT", 0) + 1
-    search_count = session.get("SEARCH_COUNT", 0)
-
-    activity = doc_ref.collection("session")
-    activity = activity.document(page_uuid)
-    activity = activity.collection("activity")
-    activity = activity.document(doc_time + "_" + str(search_count))
-
-    activity.set(
-        {
-            "time": doc_time,
-            "specialization": "gynecology",
-            "start_year": start_year,
-            "end_year": end_year,
-            "user_input_text": user_input_text,
-            "input_text": str(request.args.get("input")),
-            "selected books": options_list,
-        }
-    )
-
-    chunks = user_input_text.lower()
-    input_data = {"input_text": chunks}
-
-    try:
-        response = request_to_sentence_embedding(
-            embedding_url + "/" + "get_embedding_from_input/", input_data
-        )
-        if response.status_code == 200:
-            embedding = response.json()
-        else:
-            logging.info(f"No embedding")
-
-        if len(options_list) != 0:
-            payload = {
-                "vector": embedding[0],
-                "limit": 10,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
-                        {"key": "book_name", "match": {"any": options_list}},
-                    ]
-                },
-            }
-        else:
-            payload = {
-                "vector": embedding[0],
-                "limit": 10,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
-                    ]
-                },
-            }
-
-        result = search_client(
-            endpoint3, payload, headers3, specialization="gynecology"
-        )
-
-        sorted_res = sorted(result, key=lambda x: x["score"], reverse=True)
-        logging.info(f"Total res: {str(len(sorted_res))}")
-
-        # Call API 2 with user input and return the response
-        # Replace the following line with your API 2 call
-        api2_response = {"data": f"{json.dumps(sorted_res)}"}
-
-        return jsonify(api2_response)
-
-    except Exception as e:
-        return render_template("server_limit.html")
-
-
-@app.route("/search3")
-def search3():
-    # Access user input from the request
-    user_input_text = request.args.get("input")
-    session["user_input_text"] = user_input_text
-
-    start_year = int(request.args.get("sy"))
-    end_year = int(request.args.get("ey"))
-
-    # Parse options parameter into a list
-    options = request.args.get("options")
-    
-    if options:
-        options_list = options.split(",")
-
-        # if specialization is pediatric and there is no options specified we set defalut value.  
-    else:
-        options_list = ['Meharban Singh Drug Dosages in Children']
-    google_id = session.get("google_id")
-    if google_id:
-        doc_ref = user_collection.document(session["google_id"])
-    else:
-        doc_ref = user_collection.document("unknown")
-
-    session["SEARCH_COUNT"] = session.get("SEARCH_COUNT", 0) + 1
-    search_count = session.get("SEARCH_COUNT", 0)
-
-    activity = doc_ref.collection("session")
-    activity = activity.document(page_uuid)
-    activity = activity.collection("activity")
-    activity = activity.document(doc_time + "_" + str(search_count))
-
-    activity.set(
-        {
-            "time": doc_time,
-            "specialization": "pediatric",
-            "start_year": start_year,
-            "end_year": end_year,
-            "user_input_text": user_input_text,
-            "input_text": str(request.args.get("input")),
-            "selected books": options_list,
-        }
-    )
-
-    chunks = user_input_text.lower()
-    input_data = {"input_text": chunks}
-
-    try:
-        response = request_to_sentence_embedding(
-            embedding_url + "/" + "get_embedding_from_input/", input_data
-        )
-        if response.status_code == 200:
-            embedding = response.json()
-        else:
-            logging.info(f"No embedding")
-
-        if len(options_list) != 0:
-            payload = {
-                "vector": embedding[0],
-                "limit": 10,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
-                        {"key": "book_name", "match": {"any": options_list}},
-                    ]
-                },
-            }
-        else:
-            payload = {
-                "vector": embedding[0],
-                "limit": 10,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
-                    ]
-                },
-            }
-
-        result = search_client(
-            endpoint4, payload, headers4, specialization="pediatric"
-        )
-
-        sorted_res = sorted(result, key=lambda x: x["score"], reverse=True)
-        logging.info(f"Total res: {str(len(sorted_res))}")
-
-        # Call API 2 with user input and return the response
-        # Replace the following line with your API 2 call
-        api2_response = {"data": f"{json.dumps(sorted_res)}"}
-
-        return jsonify(api2_response)
-
-    except Exception as e:
-        return render_template("server_limit.html")
 
 @app.route("/save_page", methods=["POST"])
 def save_page():
@@ -648,226 +478,6 @@ def share():
     api_path = {"link": final_path}
 
     return jsonify(api_path)
-
-
-@app.route("/search5")
-def api5():
-    # Access user input from the request
-    user_input_text = request.args.get("input")
-    session["user_input_text"] = user_input_text
-    if len(user_input_text) < 15:
-        user_input_text = get_llm_response(
-            user_input_text, specialization="critical_care", max_output_tokens=40
-        )
-
-    start_year = int(request.args.get("sy"))
-    end_year = int(request.args.get("ey"))
-
-    # Parse options parameter into a list
-    options = request.args.get("options")
-    if options:
-        options_list = options.split(",")
-    else:
-        options_list = ["Hagberg and Benumof ’s AIRWAY MANAGEMENT", "Hung's DIFFICULT AND FAILED AIRWAY MANAGEMENT", "Irwin and Rippe’s Intensive Care Medicine","Pharmacology for Anaesthesia and Intensive Care", "PILBEAM’S Mechanical Ventilation Physiological and Clinical Applications" ]
-
-    google_id = session.get("google_id", "")
-    if google_id:
-        doc_ref = user_collection.document(session["google_id"])
-    else:
-        doc_ref = user_collection.document("unknown")
-
-    session["SEARCH_COUNT"] = session.get("SEARCH_COUNT", 0) + 1
-    search_count = session.get("SEARCH_COUNT", 0)
-
-    activity = doc_ref.collection("session")
-    activity = activity.document(page_uuid)
-    activity = activity.collection("activity")
-    activity = activity.document(doc_time + "_" + str(search_count))
-
-    activity.set(
-        {
-            "time": doc_time,
-            "specialization": "critical_care",
-            "start_year": start_year,
-            "end_year": end_year,
-            "user_input_text": user_input_text,
-            "input_text": str(request.args.get("input")),
-            "selected books": options_list,
-        }
-    )
-
-    chunks = user_input_text.lower()
-    input_data = {"input_text": chunks}
-
-    try:
-        response = request_to_sentence_embedding(
-            embedding_url + "/" + "get_embedding_from_input/", input_data
-        )
-        if response.status_code == 200:
-            embedding = response.json()
-        else:
-            logging.info(f"Request failed with status code {response.status_code}")
-            logging.info(
-                response.text
-            )  # Print the error message or details if the request fails
-            logging.info(f"No embedding")
-        if len(options_list) != 0:
-            payload = {
-                "vector": embedding[0],
-                "limit": top_k,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
-                        {"key": "book_name", "match": {"any": options_list}},
-                    ]
-                },
-            }
-        else:
-            payload = {
-                "vector": embedding[0],
-                "limit": top_k,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
-                    ]
-                },
-            }
-
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future1 = executor.submit(
-                search_client, endpoint1, payload, headers1, specialization="anesthesia"
-            )
-            future2 = executor.submit(
-                search_client, endpoint2, payload, headers2, specialization="anesthesia"
-            )
-
-        result1 = future1.result()
-        result2 = future2.result()
-        result1.extend(result2)
-
-        sorted_res = sorted(result1, key=lambda x: x["score"], reverse=True)
-        logging.info(f"Total res: {str(len(sorted_res))}")
-
-        # Call API 2 with user input and return the response
-        # Replace the following line with your API 2 call
-        api2_response = {"data": f"{json.dumps(sorted_res)}"}
-
-        return jsonify(api2_response)
-
-    except Exception as e:
-        return render_template("server_limit.html")
-
-
-@app.route("/search6")
-def api6():
-    # Access user input from the request
-    user_input_text = request.args.get("input")
-    session["user_input_text"] = user_input_text
-    if len(user_input_text) < 15:
-        user_input_text = get_llm_response(
-            user_input_text, specialization="medicine", max_output_tokens=40
-        )
-
-    start_year = int(request.args.get("sy"))
-    end_year = int(request.args.get("ey"))
-
-    # Parse options parameter into a list
-    options = request.args.get("options")
-    if options:
-        options_list = options.split(",")
-    else:
-        options_list = ["HUTCHISON’S CLINICAL METHODS", "Macleod’s Clinical Examinatio", "PRINCIPLES OF INTERNAL MEDICINE","Pharmacology for Anaesthesia and Intensive Care", "The ECG Made Easy" ]
-
-    google_id = session.get("google_id", "")
-    if google_id:
-        doc_ref = user_collection.document(session["google_id"])
-    else:
-        doc_ref = user_collection.document("unknown")
-
-    session["SEARCH_COUNT"] = session.get("SEARCH_COUNT", 0) + 1
-    search_count = session.get("SEARCH_COUNT", 0)
-
-    activity = doc_ref.collection("session")
-    activity = activity.document(page_uuid)
-    activity = activity.collection("activity")
-    activity = activity.document(doc_time + "_" + str(search_count))
-
-    activity.set(
-        {
-            "time": doc_time,
-            "specialization": "medicine",
-            "start_year": start_year,
-            "end_year": end_year,
-            "user_input_text": user_input_text,
-            "input_text": str(request.args.get("input")),
-            "selected books": options_list,
-        }
-    )
-
-    chunks = user_input_text.lower()
-    input_data = {"input_text": chunks}
-
-    try:
-        response = request_to_sentence_embedding(
-            embedding_url + "/" + "get_embedding_from_input/", input_data
-        )
-        if response.status_code == 200:
-            embedding = response.json()
-        else:
-            logging.info(f"Request failed with status code {response.status_code}")
-            logging.info(
-                response.text
-            )  # Print the error message or details if the request fails
-            logging.info(f"No embedding")
-        if len(options_list) != 0:
-            payload = {
-                "vector": embedding[0],
-                "limit": top_k,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}},
-                        {"key": "book_name", "match": {"any": options_list}},
-                    ]
-                },
-            }
-        else:
-            payload = {
-                "vector": embedding[0],
-                "limit": top_k,
-                "with_payload": True,
-                "filter": {
-                    "must": [
-                        {"key": "year", "range": {"gte": start_year, "lte": end_year}}
-                    ]
-                },
-            }
-
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future1 = executor.submit(
-                search_client, endpoint1, payload, headers1, specialization="anesthesia"
-            )
-            future2 = executor.submit(
-                search_client, endpoint2, payload, headers2, specialization="anesthesia"
-            )
-
-        result1 = future1.result()
-        result2 = future2.result()
-        result1.extend(result2)
-
-        sorted_res = sorted(result1, key=lambda x: x["score"], reverse=True)
-        logging.info(f"Total res: {str(len(sorted_res))}")
-
-        # Call API 2 with user input and return the response
-        # Replace the following line with your API 2 call
-        api2_response = {"data": f"{json.dumps(sorted_res)}"}
-
-        return jsonify(api2_response)
-
-    except Exception as e:
-        return render_template("server_limit.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=os.getenv("PORT", 8080))
